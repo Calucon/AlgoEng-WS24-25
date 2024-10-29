@@ -10,5 +10,5 @@ project(AlgoEngPKSS)
 add_subdirectory(lib/FileReader)
 
 # programms
-add_subdirectory(FileGenerator)
-add_subdirectory(EM_MergeSort)
+add_subdirectory(src/FileGenerator)
+add_subdirectory(src/EM_MergeSort)

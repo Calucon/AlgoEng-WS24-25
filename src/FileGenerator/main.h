@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "../../lib/FileReader/src/fileReader.h"
+#include "../../lib/FileReader/fileReader.h"
 
 /**
  * @param argc number of input arguments
