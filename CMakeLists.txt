@@ -5,7 +5,3 @@ set(EXECUTABLE_OUTPUT_PATH "bin")
 
 project(FileGenerator)
 add_subdirectory(FileGenerator)
-
-#configure_file(AlgoEngPKSS.h.in AlgoEngPKSS.h)
-#target_include_directories(AlgoEngPKSS PUBLIC "${PROJECT_BINARY_DIR}")
-add_executable(FileGenerator file_generator.cpp)
