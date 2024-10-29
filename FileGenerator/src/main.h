@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "../../lib/FileReader/src/fileReader.h"
+
 /**
  * @param argc number of input arguments
  * @param argv input parameters (0 is always the executable path)
