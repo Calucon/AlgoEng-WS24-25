@@ -1,4 +1,3 @@
-#include "AlgoEngPKSSConfig.h"
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
