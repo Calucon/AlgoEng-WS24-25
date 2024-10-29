@@ -3,4 +3,4 @@
 mkdir -p bin/
 
 cmake .
-cmake --build . --clean-first
+cmake --build .
