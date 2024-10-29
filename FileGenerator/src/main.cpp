@@ -1,4 +1,5 @@
 #include "main.h"
+#include "../../FileReader/src/fileReader.h"
 
 int main(int argc, char *argv[])
 {
@@ -30,21 +31,20 @@ int main(int argc, char *argv[])
     std::cout << "Data written to file!" << std::endl;
 
     // test to verify everything worked fine
-    // testFile(filePath, intCount);
+    testFile(filePath, intCount);
 }
 
 void testFile(char *filePath, long intCount)
 {
-    std::ifstream handle(filePath, std::ios::binary);
+    auto fr = AEPKSS::FileReader(filePath);
 
-    int a;
-    while (true)
+    auto data = fr.read(3);
+    for (auto element : data)
     {
-        handle.read(reinterpret_cast<char *>(&a), sizeof(a));
-        if (!handle.good())
-            break;
-        std::cout << "\tR: " << a << std::endl;
+        std::cout << "\tR: " << element << std::endl;
     }
-
-    handle.close();
+    if (data.size() == 0)
+    {
+        std::cout << "\tR: vector is empty" << std::endl;
+    }
 }
