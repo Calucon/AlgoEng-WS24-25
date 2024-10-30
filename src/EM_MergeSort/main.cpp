@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     auto t2 = chrono::high_resolution_clock::now();
     cout << "\tWriting complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
 
-    AEPKSS::merge_sort(data);
+    AEPKSS::intro_sort(data);
     auto t3 = chrono::high_resolution_clock::now();
     cout << "\tWriting complete after " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
 
