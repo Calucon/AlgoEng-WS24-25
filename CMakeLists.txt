@@ -7,7 +7,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 project(AlgoEngPKSS)
 
 # libraries
-add_subdirectory(lib/FileReader)
+add_subdirectory(lib/IO)
 
 # programms
 add_subdirectory(src/FileGenerator)
