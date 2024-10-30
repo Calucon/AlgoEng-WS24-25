@@ -13,7 +13,8 @@ int main(int argc, char *argv[])
     auto filePath = argv[1];
     auto isSilent = argc >= 3 && string(argv[2]) == "silent";
 
-    cout << "Analyzing file: " << filePath << endl;
+    auto t1 = chrono::high_resolution_clock::now();
+    cout << "Analyzing file: " << filePath << " | Buffer: " << FILEANALYZER_BUFFER_SIZE << ")" << endl;
 
     // open file handle
     auto fr = AEPKSS::FileReader(filePath);
@@ -27,29 +28,32 @@ int main(int argc, char *argv[])
     uint32_t x;
     char buf[11];
 
-    while ((tmp = fr.read()).has_value())
+    vector<uint32_t> buffer;
+    while ((buffer = fr.read(FILEANALYZER_BUFFER_SIZE)).size() > 0)
     {
-        x = tmp.value();
-
-        if (x < prev)
+        for (auto x : buffer)
         {
-            failCount++;
-            if (failedAt == 0)
-                failedAt = i;
+            if (x < prev)
+            {
+                failCount++;
+                if (failedAt == 0)
+                    failedAt = i;
+            }
+
+            prev = x;
+            i++;
+
+            sprintf(buf, "%010d", x);
+            if (!isSilent)
+                cout << buf << " | (fails: " << failCount << ") [" << i << "]" << endl;
         }
-
-        prev = x;
-        i++;
-
-        sprintf(buf, "%010d", x);
-        if (!isSilent)
-            cout << buf << " | (fails: " << failCount << ") [" << i << "]" << endl;
     }
 
     fr.dispose();
 
+    auto t2 = chrono::high_resolution_clock::now();
     if (failCount == 0)
-        cout << "File analyzed! | Everything is sorted correctly! " << endl;
+        cout << "File analyzed in " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms! | Everything is sorted correctly! " << endl;
     else
-        cout << "File analyzed! | Fails: " << failCount << ", First: " << failedAt << endl;
+        cout << "File analyzed in " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms! | Fails: " << failCount << ", First: " << failedAt << endl;
 }
