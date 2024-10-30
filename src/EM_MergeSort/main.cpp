@@ -1,17 +1,23 @@
-#include <cstdlib>
-#include <iomanip>
-#include <iostream>
+#include "main.h"
 
 int main(int argc, char *argv[])
 {
-    std::cout << "argc == " << argc << '\n';
+    if (argc < 3)
+    {
+        cout << "Usage:" << endl;
+        cout << "  ./MergeSort {inFile} {outFile}" << endl;
+        return EXIT_FAILURE;
+    }
 
-    for (int ndx{}; ndx != argc; ++ndx)
-        std::cout << "argv[" << ndx << "] == " << std::quoted(argv[ndx]) << '\n';
-    std::cout << "argv[" << argc << "] == "
-              << static_cast<void *>(argv[argc]) << '\n';
+    char *strEnd; // just used for long parsing
+    auto inFilePath = argv[1];
+    auto outFilePath = argv[2];
+    // auto intCount = strtol(argv[2], &strEnd, 10);
 
-    /* ... */
+    cout << "IN: " << inFilePath << " | OUT: " << outFilePath << endl;
 
-    return argc == 3 ? EXIT_SUCCESS : EXIT_FAILURE; // optional return value
+    // TODO: implement
+
+    cout << "Sorting complete!" << endl;
+    return EXIT_SUCCESS;
 }
