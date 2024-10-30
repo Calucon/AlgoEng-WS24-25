@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <optional>
+#include <chrono>
 
 #include "../../lib/IO/fileReader.h"
 #include "../../lib/IO/fileWriter.h"

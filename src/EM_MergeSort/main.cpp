@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
     auto fw = AEPKSS::FileWriter(outFilePath);
 
 #pragma region testing
+    auto t1 = chrono::high_resolution_clock::now();
+
     vector<u_int32_t> data;
     optional<u_int32_t> tmp;
 
@@ -27,11 +29,17 @@ int main(int argc, char *argv[])
     }
 
     fr.dispose();
+    auto t2 = chrono::high_resolution_clock::now();
+    cout << "\tWriting complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
 
     AEPKSS::merge_sort(data);
+    auto t3 = chrono::high_resolution_clock::now();
+    cout << "\tWriting complete after " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
 
     fw.write(data);
     fw.dispose();
+    auto t4 = chrono::high_resolution_clock::now();
+    cout << "\tWriting complete after " << ((chrono::duration<double, std::milli>)(t4 - t3)).count() << "ms" << endl;
 
 #pragma endregion
 
