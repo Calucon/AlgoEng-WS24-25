@@ -1,6 +1,9 @@
-add_executable(MergeSort main.cpp)
+add_executable(EM_MergeSort main.cpp)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib/IO) # include files from FileReader
-target_link_libraries(MergeSort FileIO)
+include_directories(${CMAKE_SOURCE_DIR}/lib/IO)
+target_link_libraries(EM_MergeSort FileIO)
 
-install(TARGETS MergeSort RUNTIME DESTINATION bin)
+include_directories(${CMAKE_SOURCE_DIR}/lib/MergeSort)
+target_link_libraries(EM_MergeSort MergeSort)
+
+install(TARGETS EM_MergeSort RUNTIME DESTINATION bin)

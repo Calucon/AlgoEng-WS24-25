@@ -8,6 +8,7 @@ project(AlgoEngPKSS)
 
 # libraries
 add_subdirectory(lib/IO)
+add_subdirectory(lib/MergeSort)
 
 # programms
 add_subdirectory(src/FileAnalyzer)
