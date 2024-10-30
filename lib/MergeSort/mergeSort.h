@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <vector>
+#include <optional>
 
 using namespace std;
 
