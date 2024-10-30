@@ -29,6 +29,11 @@ namespace AEPKSS
         void dispose();
 
         /**
+         * Write buffer to disk
+         */
+        void flush();
+
+        /**
          * Writes the number to the file.
          */
         void write(uint32_t i, bool flush = false);

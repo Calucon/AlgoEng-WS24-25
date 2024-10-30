@@ -12,14 +12,20 @@ FileWriter::FileWriter(const char *filePath)
 
 FileWriter::~FileWriter()
 {
-    this->dispose();
+    if (!this->isDisposed)
+        this->dispose();
 }
 
 void FileWriter::dispose()
 {
     this->isDisposed = true;
-    this->handle.flush();
+    this->flush();
     this->handle.close();
+}
+
+void FileWriter::flush()
+{
+    this->handle.flush();
 }
 
 void FileWriter::write(uint32_t i, bool flush)

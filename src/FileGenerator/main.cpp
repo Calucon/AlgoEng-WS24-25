@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
         // std::cout << "\tW: " << num << std::endl;
     }
 
+    fw.dispose();
     std::cout << "Data written to file!" << std::endl;
 
     // test to verify everything worked fine
