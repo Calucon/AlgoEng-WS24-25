@@ -5,12 +5,19 @@ using namespace AEPKSS;
 FileWriter::FileWriter(const char *filePath)
 {
     this->filePath = filePath;
+    this->isDisposed = false;
 
     this->handle.open(filePath, ios::binary);
 }
 
 FileWriter::~FileWriter()
 {
+    this->dispose();
+}
+
+void FileWriter::dispose()
+{
+    this->isDisposed = true;
     this->handle.flush();
     this->handle.close();
 }

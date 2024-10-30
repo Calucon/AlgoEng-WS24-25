@@ -9,6 +9,7 @@ namespace AEPKSS
     {
     private:
         const char *filePath;
+        bool isDisposed;
         ofstream handle;
 
     public:
@@ -21,6 +22,11 @@ namespace AEPKSS
          * Clean up and close file handle
          */
         ~FileWriter();
+
+        /**
+         * Manually free resources, like destructor
+         */
+        void dispose();
 
         /**
          * Writes the number to the file.
