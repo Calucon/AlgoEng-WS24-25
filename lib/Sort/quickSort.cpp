@@ -5,7 +5,7 @@ void AEPKSS::Sort::quick_sort(vector<uint32_t> &in)
     sort(in, 0, in.size() - 1);
 }
 
-static void sort(vector<uint32_t> &in, uint32_t left, uint32_t right)
+static void sort(vector<uint32_t> &in, int32_t left, int32_t right)
 {
     if (left >= right)
         return;
@@ -15,7 +15,7 @@ static void sort(vector<uint32_t> &in, uint32_t left, uint32_t right)
     sort(in, pIndex + 1, right);
 }
 
-static uint32_t partition(vector<uint32_t> &in, uint32_t left, uint32_t right)
+static uint32_t partition(vector<uint32_t> &in, int32_t left, int32_t right)
 {
     auto pivot = in[right];
     auto swapIndex = left - 1;
