@@ -7,6 +7,6 @@
 
 #include "../../lib/IO/fileReader.h"
 #include "../../lib/IO/fileWriter.h"
-#include "../../lib/MergeSort/mergeSort.h"
+#include "../../lib/Sort/mergeSort.h"
 
 using namespace std;
