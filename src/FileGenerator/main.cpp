@@ -48,8 +48,8 @@ void testFile(char *filePath, long intCount)
 {
     auto fr = AEPKSS::FileReader(filePath);
 
-    optional<u_int32_t> tmp;
-    u_int32_t i = 0;
+    optional<uint32_t> tmp;
+    uint32_t i = 0;
 
     while ((tmp = fr.read()).has_value())
     {

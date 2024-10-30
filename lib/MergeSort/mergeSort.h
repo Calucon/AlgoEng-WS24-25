@@ -13,8 +13,8 @@ using namespace std;
 namespace AEPKSS
 {
 
-    void merge_sort(vector<u_int32_t> &in);
+    void merge_sort(vector<uint32_t> &in);
 }
 
-static void merge(vector<u_int32_t> &in, u_int32_t left, u_int32_t right, u_int32_t middle);
-static void split(vector<u_int32_t> &in, u_int32_t left, u_int32_t right);
+static void merge(vector<uint32_t> &in, uint32_t left, uint32_t right, uint32_t middle);
+static void split(vector<uint32_t> &in, uint32_t left, uint32_t right);

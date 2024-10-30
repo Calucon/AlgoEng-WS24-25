@@ -22,8 +22,8 @@ int main(int argc, char *argv[])
     uint64_t failedAt = 0;
     uint64_t failCount = 0;
 
-    optional<u_int32_t> tmp;
-    u_int32_t x;
+    optional<uint32_t> tmp;
+    uint32_t x;
     char buf[11];
 
     while ((tmp = fr.read()).has_value())

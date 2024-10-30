@@ -1,11 +1,11 @@
 #include "mergeSort.h"
 
-void AEPKSS::merge_sort(vector<u_int32_t> &in)
+void AEPKSS::merge_sort(vector<uint32_t> &in)
 {
     split(in, 0, in.size() - 1);
 }
 
-static void split(vector<u_int32_t> &in, u_int32_t left, u_int32_t right)
+static void split(vector<uint32_t> &in, uint32_t left, uint32_t right)
 {
     // end reached, stop splitting
     if (left >= right)
@@ -25,7 +25,7 @@ static void split(vector<u_int32_t> &in, u_int32_t left, u_int32_t right)
     merge(in, left, right, middle);
 }
 
-static void merge(vector<u_int32_t> &in, u_int32_t left, u_int32_t right, u_int32_t middle)
+static void merge(vector<uint32_t> &in, uint32_t left, uint32_t right, uint32_t middle)
 {
     if (MERGE_SORT_DEBUG)
         cout << "\tmerge - l: " << left << " | m: " << middle << " | r: " << right << endl;
@@ -33,8 +33,8 @@ static void merge(vector<u_int32_t> &in, u_int32_t left, u_int32_t right, u_int3
     auto pL = left;
     auto pM = middle + 1;
 
-    u_int32_t x, y;
-    optional<u_int32_t> tmp = nullopt;
+    uint32_t x, y;
+    optional<uint32_t> tmp = nullopt;
 
     for (; pL < pM; pL++)
     {

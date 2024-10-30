@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
 #pragma region testing
     auto t1 = chrono::high_resolution_clock::now();
 
-    vector<u_int32_t> data;
-    optional<u_int32_t> tmp;
+    vector<uint32_t> data;
+    optional<uint32_t> tmp;
 
     while ((tmp = fr.read()).has_value())
     {
