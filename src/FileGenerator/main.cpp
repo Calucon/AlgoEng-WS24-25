@@ -16,16 +16,14 @@ int main(int argc, char *argv[])
     std::cout << "File: " << filePath << " | IntCount: " << intCount << std::endl;
 
     // open file handle
-    std::ofstream handle(filePath, std::ios::binary);
+    auto fw = AEPKSS::FileWriter(filePath);
     // generate random numbers
     for (auto i = 0; i < intCount; i++)
     {
         auto num = std::rand();
-        handle.write(reinterpret_cast<const char *>(&num), sizeof(num));
+        fw.write(num);
         // std::cout << "\tW: " << num << std::endl;
     }
-    // release file handle
-    handle.close();
 
     std::cout << "Data written to file!" << std::endl;
 

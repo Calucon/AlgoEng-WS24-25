@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "../../lib/IO/fileReader.h"
+#include "../../lib/IO/fileWriter.h"
 
 /**
  * @param argc number of input arguments
