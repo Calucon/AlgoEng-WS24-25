@@ -34,37 +34,28 @@ optional<uint32_t> FileReader::read()
 
     uint32_t value;
     this->handle.read(reinterpret_cast<char *>(&value), sizeof(value));
+
+    // if bytesRead == 0
+    if (this->handle.gcount() == 0)
+        return nullopt;
+
     return value;
 }
 
 vector<uint32_t> FileReader::read(uint32_t numbers)
 {
-    vector<uint32_t> v;
-
     // return empty vector if handle is no longer good
     if (!handle.good())
-        return v;
+        return vector<uint32_t>();
 
-    v.reserve(numbers);
+    vector<uint32_t> v(numbers);
+    auto size = sizeof(uint32_t);
 
-    int value;
-    streamsize size = sizeof(value);
-    for (auto i = 0; i < numbers; i++)
-    {
-        this->handle.read(reinterpret_cast<char *>(&value), size);
-        v.push_back(value);
+    this->handle.read(reinterpret_cast<char *>(v.data()), numbers * size);
 
-        // abort of EOF is hit
-        if (this->handle.eof())
-        {
-            // shrink vector if there's not enough data
-            if (i < numbers)
-            {
-                v.resize(i);
-            }
-            break;
-        }
-    }
+    auto numRead = this->handle.gcount() / size;
+    if (numRead < numbers)
+        v.resize(numRead);
 
     return v;
 }

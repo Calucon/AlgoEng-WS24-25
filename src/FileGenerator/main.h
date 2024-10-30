@@ -1,12 +1,16 @@
 #include <cstdlib>
-#include <iomanip>
 #include <iostream>
-#include <fstream>
+#include <optional>
+#include <random>
 
 #include "../../lib/IO/fileReader.h"
 #include "../../lib/IO/fileWriter.h"
 
 using namespace std;
+
+#ifndef FILE_GEN_DEBUG
+#define FILE_GEN_DEBUG false
+#endif
 
 /**
  * @param argc number of input arguments
@@ -18,3 +22,4 @@ int main(int argc, char *argv[]);
  * Used to test the generated file
  */
 void testFile(char *filePath, long intCount);
+void testFile2(char *filePath, long intCount);

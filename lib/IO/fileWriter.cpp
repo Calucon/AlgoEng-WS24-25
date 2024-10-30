@@ -41,11 +41,8 @@ void FileWriter::write(vector<uint32_t> data, bool flush)
     if (data.size() == 0)
         return;
 
-    auto size = sizeof(data[0]);
-    for (auto i : data)
-    {
-        this->handle.write(reinterpret_cast<char *>(&i), size);
-    }
+    auto size = data.size() * sizeof(uint32_t);
+    this->handle.write(reinterpret_cast<char *>(data.data()), size);
 
     if (flush)
         this->handle.flush();

@@ -18,35 +18,61 @@ int main(int argc, char *argv[])
     // open file handle
     auto fw = AEPKSS::FileWriter(filePath);
 
-    // set rand seed()
-    srand((unsigned int)time(NULL));
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<int32_t> dist;
 
     // generate random numbers
     for (auto i = 0; i < intCount; i++)
     {
-        auto num = rand();
+        auto num = dist(gen);
         fw.write(num);
-        // cout << "\tW: " << num << endl;
+
+        if (FILE_GEN_DEBUG)
+            cout << "\tW: " << num << endl;
     }
 
     fw.dispose();
     cout << "Data written to file!" << endl;
 
     // test to verify everything worked fine
-    testFile(filePath, intCount);
+    if (FILE_GEN_DEBUG)
+    {
+        testFile(filePath, intCount);
+        cout << "---" << endl;
+        testFile2(filePath, intCount);
+    }
 }
 
 void testFile(char *filePath, long intCount)
 {
     auto fr = AEPKSS::FileReader(filePath);
 
-    auto data = fr.read(3);
-    for (auto element : data)
+    optional<u_int32_t> tmp;
+    u_int32_t i = 0;
+
+    while ((tmp = fr.read()).has_value())
     {
-        cout << "\tR: " << element << endl;
+        cout << "\tR: " << tmp.value() << endl;
+        i++;
     }
-    if (data.size() == 0)
+
+    if (i == 0)
     {
         cout << "\tR: vector is empty" << endl;
     }
+
+    fr.dispose();
+}
+
+void testFile2(char *filePath, long intCount)
+{
+    auto fr = AEPKSS::FileReader(filePath);
+
+    for (auto x : fr.read(5))
+    {
+        cout << "\tR: " << x << endl;
+    }
+
+    fr.dispose();
 }

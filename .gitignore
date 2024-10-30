@@ -15,3 +15,4 @@ CMakeUserPresets.json
 bin/
 build/
 data/
+out/
