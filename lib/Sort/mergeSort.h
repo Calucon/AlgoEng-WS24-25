@@ -12,7 +12,6 @@ using namespace std;
 
 namespace AEPKSS
 {
-
     void merge_sort(vector<uint32_t> &in);
 }
 
