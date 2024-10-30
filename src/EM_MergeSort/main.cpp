@@ -30,11 +30,11 @@ int main(int argc, char *argv[])
 
     fr.dispose();
     auto t2 = chrono::high_resolution_clock::now();
-    cout << "\tWriting complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
+    cout << "\tReading complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
 
     AEPKSS::Sort::quick_sort(data);
     auto t3 = chrono::high_resolution_clock::now();
-    cout << "\tWriting complete after " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
+    cout << "\tSorting complete after " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
 
     fw.write(data);
     fw.dispose();
