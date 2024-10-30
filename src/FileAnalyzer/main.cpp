@@ -47,5 +47,9 @@ int main(int argc, char *argv[])
     }
 
     fr.dispose();
-    cout << "File analyzed! | (fails: " << failCount << ", first: " << failedAt << ")" << endl;
+
+    if (failCount == 0)
+        cout << "File analyzed! | Everything is sorted correctly! " << endl;
+    else
+        cout << "File analyzed! | Fails: " << failCount << ", First: " << failedAt << endl;
 }
