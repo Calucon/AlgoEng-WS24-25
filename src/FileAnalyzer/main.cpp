@@ -5,12 +5,13 @@ int main(int argc, char *argv[])
     if (argc < 2)
     {
         cout << "Usage:" << endl;
-        cout << "  ./FileAnalyzer {filepath}" << endl;
+        cout << "  ./FileAnalyzer {filepath} <silent>" << endl;
         return EXIT_FAILURE;
     }
 
     char *strEnd; // just used for long parsing
     auto filePath = argv[1];
+    auto isSilent = argc >= 3 && string(argv[2]) == "silent";
 
     cout << "Analyzing file: " << filePath << endl;
 
@@ -41,7 +42,8 @@ int main(int argc, char *argv[])
         i++;
 
         sprintf(buf, "%010d", x);
-        cout << buf << " | (fails: " << failCount << ") [" << i << "]" << endl;
+        if (!isSilent)
+            cout << buf << " | (fails: " << failCount << ") [" << i << "]" << endl;
     }
 
     fr.dispose();

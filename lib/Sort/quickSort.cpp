@@ -19,10 +19,11 @@ static uint32_t partition(vector<uint32_t> &in, uint32_t left, uint32_t right)
 {
     auto pivot = in[right];
     auto swapIndex = left - 1;
+    uint32_t tmp;
 
-    for (auto i = left, j = right - 1; i < j; i++)
+    for (auto i = left; i < right; i++)
     {
-        if (in[i] > pivot)
+        if (pivot > in[i])
             continue;
 
         swapIndex++;
