@@ -1,6 +1,6 @@
 #include "mergeSort.h"
 
-void AEPKSS::merge_sort(vector<uint32_t> &in)
+void AEPKSS::Sort::merge_sort(vector<uint32_t> &in)
 {
     split(in, 0, in.size() - 1);
 }

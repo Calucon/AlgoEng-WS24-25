@@ -10,7 +10,7 @@ using namespace std;
 #define MERGE_SORT_DEBUG false
 #endif
 
-namespace AEPKSS
+namespace AEPKSS::Sort
 {
     void merge_sort(vector<uint32_t> &in);
 }

@@ -3,7 +3,7 @@
 
 using namespace std;
 
-namespace AEPKSS
+namespace AEPKSS::Sort
 {
     void intro_sort(vector<uint32_t> &in);
 }
