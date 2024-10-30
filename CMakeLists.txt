@@ -10,5 +10,6 @@ project(AlgoEngPKSS)
 add_subdirectory(lib/IO)
 
 # programms
+add_subdirectory(src/FileAnalyzer)
 add_subdirectory(src/FileGenerator)
 add_subdirectory(src/EM_MergeSort)

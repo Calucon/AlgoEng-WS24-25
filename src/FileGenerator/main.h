@@ -6,6 +6,8 @@
 #include "../../lib/IO/fileReader.h"
 #include "../../lib/IO/fileWriter.h"
 
+using namespace std;
+
 /**
  * @param argc number of input arguments
  * @param argv input parameters (0 is always the executable path)

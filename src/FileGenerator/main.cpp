@@ -4,29 +4,33 @@ int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
-        std::cout << "Usage:" << std::endl;
-        std::cout << "  ./FileGenerator {filepath} {count}" << std::endl;
+        cout << "Usage:" << endl;
+        cout << "  ./FileGenerator {filepath} {count}" << endl;
         return EXIT_FAILURE;
     }
 
     char *strEnd; // just used for long parsing
     auto filePath = argv[1];
-    auto intCount = std::strtol(argv[2], &strEnd, 10);
+    auto intCount = strtol(argv[2], &strEnd, 10);
 
-    std::cout << "File: " << filePath << " | IntCount: " << intCount << std::endl;
+    cout << "File: " << filePath << " | IntCount: " << intCount << endl;
 
     // open file handle
     auto fw = AEPKSS::FileWriter(filePath);
+
+    // set rand seed()
+    srand((unsigned int)time(NULL));
+
     // generate random numbers
     for (auto i = 0; i < intCount; i++)
     {
-        auto num = std::rand();
+        auto num = rand();
         fw.write(num);
-        // std::cout << "\tW: " << num << std::endl;
+        // cout << "\tW: " << num << endl;
     }
 
     fw.dispose();
-    std::cout << "Data written to file!" << std::endl;
+    cout << "Data written to file!" << endl;
 
     // test to verify everything worked fine
     testFile(filePath, intCount);
@@ -39,10 +43,10 @@ void testFile(char *filePath, long intCount)
     auto data = fr.read(3);
     for (auto element : data)
     {
-        std::cout << "\tR: " << element << std::endl;
+        cout << "\tR: " << element << endl;
     }
     if (data.size() == 0)
     {
-        std::cout << "\tR: vector is empty" << std::endl;
+        cout << "\tR: vector is empty" << endl;
     }
 }
