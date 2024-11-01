@@ -1,17 +1,24 @@
 #include "main.h"
 
+static bool PRINT_PROGRESS_INFO = false;
+
 int main(int argc, char *argv[])
 {
     if (argc < 4)
     {
         cout << "Usage:" << endl;
-        cout << "  ./MergeSort {inFile} {outFile} {blockSize}" << endl;
+        cout << "  ./MergeSort {inFile} {outFile} {blockSize} <progress>" << endl;
+        cout << "      inFile    -> input file" << endl;
+        cout << "      outFile   -> output file" << endl;
+        cout << "      blockSize -> B - max buffer size" << endl;
+        cout << "      progress  -> (optional) show progress" << endl;
         return EXIT_FAILURE;
     }
 
     const auto inFilePath = string(argv[1]);
     const auto outFilePath = string(argv[2]);
     const auto tmpFilePath = filesystem::temp_directory_path().append(TMP_FILE_NAME);
+    PRINT_PROGRESS_INFO = argc >= 5 && string(argv[4]) == "progress";
 
     char *strEnd; // just used for long parsing
     const auto blockSize = max(1L, strtol(argv[3], &strEnd, 10));
@@ -57,12 +64,20 @@ static uint64_t sortIntoTmp(const string inFilePath, const filesystem::path &tmp
     auto fwTmp = AEPKSS::FileWriter(tmpFilePath.generic_string());
     uint64_t numbersRead = 0;
 
+    auto t1 = chrono::high_resolution_clock::now();
     vector<uint32_t> data;
     while ((data = frIn.read(blockSize)).size() > 0)
     {
         AEPKSS::Sort::intro_sort(data);
         fwTmp.write(data);
         numbersRead += data.size();
+
+        if (PRINT_PROGRESS_INFO)
+        {
+            auto t2 = chrono::high_resolution_clock::now();
+            cout << "\t\tBlock Sorting Step complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
+            t1 = t2;
+        }
     }
 
     frIn.dispose();
@@ -72,7 +87,7 @@ static uint64_t sortIntoTmp(const string inFilePath, const filesystem::path &tmp
 
 static void mergeBlocks(const MergeJob &job)
 {
-    if (PRINT_JOB_INFO)
+    if (PRINT_PROGRESS_INFO)
         cout << "\t\tJob_ | id0: " << job.blockId0 << ", id1: " << job.blockId1 << ", seek0: " << job.blockSeek0 << ", seek1: " << job.blockSeek1 << ", OIT: " << job.outFileIsTmp << ", infile: " << job.inFilePath << endl;
 
     auto frIn0 = AEPKSS::FileReader(job.inFilePath);

@@ -14,10 +14,6 @@
 
 using namespace std;
 
-#ifndef PRINT_JOB_INFO
-#define PRINT_JOB_INFO false
-#endif
-
 #ifndef TMP_FILE_NAME
 #define TMP_FILE_NAME "em_mergesort.tmp"
 #endif
