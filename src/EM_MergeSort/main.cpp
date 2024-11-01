@@ -25,7 +25,6 @@ int main(int argc, char *argv[])
     cout << "\tBlock Sorting complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
 
     // merge individual blocks
-    // mergeTmpBack(outFilePath, tmpFilePath, blockSize);
     queue<MergeJob> mergeQueue = createMergeJobs(blockSize, numbersRead, tmpFilePath.generic_string(), outFilePath);
     MergeJob *lastJob = nullptr;
     cout << "\tQueue Size: " << mergeQueue.size() << endl;
@@ -55,7 +54,7 @@ int main(int argc, char *argv[])
 static uint64_t sortIntoTmp(const string inFilePath, const filesystem::path &tmpFilePath, const long &blockSize)
 {
     auto frIn = AEPKSS::FileReader(inFilePath);
-    auto fwTmp = AEPKSS::FileWriter(tmpFilePath.generic_string().c_str());
+    auto fwTmp = AEPKSS::FileWriter(tmpFilePath.generic_string());
     uint64_t numbersRead = 0;
 
     vector<uint32_t> data;
@@ -69,66 +68,6 @@ static uint64_t sortIntoTmp(const string inFilePath, const filesystem::path &tmp
     frIn.dispose();
     fwTmp.dispose();
     return numbersRead;
-}
-
-static void mergeTmpBack(const string outFilePath, const filesystem::path &tmpFilePath, const long &blockSize)
-{
-    auto frTmp = AEPKSS::FileReader(tmpFilePath.generic_string().c_str());
-    auto fwOut = AEPKSS::FileWriter(outFilePath);
-
-    vector<uint32_t> in0, in1, out;
-    vector<uint32_t>::iterator in0iter = in0.end(), in1iter = in1.end();
-
-    do
-    {
-        // load more elements into in-Buffer if necessary
-        if (in0iter == in0.end())
-        {
-            in0 = frTmp.read(blockSize);
-            in0iter = in0.begin();
-            if (in0.empty())
-                break;
-        }
-        if (in1iter == in1.end())
-        {
-            in1 = frTmp.read(blockSize);
-            in1iter = in1.begin();
-            if (in1.empty())
-                break;
-        }
-
-        // empty buffer if full
-        if (out.size() == blockSize)
-        {
-            fwOut.write(out);
-            out.clear();
-            out.reserve(blockSize);
-        }
-
-        if (*in0iter < *in1iter)
-        {
-            out.push_back(*in0iter);
-            in0iter++;
-        }
-        else
-        {
-            out.push_back(*in1iter);
-            in1iter++;
-        }
-    } while (true);
-
-    // empty remaining vector elements, they must be sorted by now
-    for (; in0iter != in0.end(); in0iter++)
-    {
-        fwOut.write(*in0iter);
-    }
-    for (; in1iter != in1.end(); in1iter++)
-    {
-        fwOut.write(*in1iter);
-    }
-
-    frTmp.dispose();
-    fwOut.dispose();
 }
 
 static void mergeBlocks(const MergeJob &job)

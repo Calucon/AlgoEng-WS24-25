@@ -51,11 +51,6 @@ struct MergeJob
 static uint64_t sortIntoTmp(const string inFilePath, const filesystem::path &tmpFilePath, const long &blockSize);
 
 /**
- * Reads the TMP file and merges the blocks into the output file
- */
-static void mergeTmpBack(const string outFilePath, const filesystem::path &tmpFilePath, const long &blockSize);
-
-/**
  * Merges two blocks together
  */
 static void mergeBlocks(const MergeJob &job);
