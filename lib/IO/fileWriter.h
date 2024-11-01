@@ -8,7 +8,7 @@ namespace AEPKSS
     class FileWriter
     {
     private:
-        const char *filePath;
+        string filePath;
         bool isDisposed;
         ofstream handle;
 
@@ -17,6 +17,10 @@ namespace AEPKSS
          * Open file handle
          */
         FileWriter(const char *filePath);
+        /**
+         * Open file handle
+         */
+        FileWriter(const string filePath);
 
         /**
          * Clean up and close file handle

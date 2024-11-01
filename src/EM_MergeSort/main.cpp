@@ -9,8 +9,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    const auto inFilePath = argv[1];
-    const auto outFilePath = argv[2];
+    const auto inFilePath = string(argv[1]);
+    const auto outFilePath = string(argv[2]);
     const auto tmpFilePath = filesystem::temp_directory_path().append(TMP_FILE_NAME);
 
     char *strEnd; // just used for long parsing
@@ -26,12 +26,13 @@ int main(int argc, char *argv[])
 
     // merge individual blocks
     // mergeTmpBack(outFilePath, tmpFilePath, blockSize);
-    queue<MergeJob> mergeQueue = createMergeJobs(blockSize, numbersRead, tmpFilePath.generic_string().c_str(), outFilePath);
+    queue<MergeJob> mergeQueue = createMergeJobs(blockSize, numbersRead, tmpFilePath.generic_string(), outFilePath);
     MergeJob *lastJob = nullptr;
     cout << "\tQueue Size: " << mergeQueue.size() << endl;
     while (!mergeQueue.empty())
     {
         lastJob = &mergeQueue.front();
+        // cout << "Job | id0: " << lastJob->blockId0 << ", id1: " << lastJob->blockId1 << ", seek0: " << lastJob->blockSeek0 << ", seek1: " << lastJob->blockSeek1 << ", OIT: " << lastJob->outFileIsTmp << endl;
         mergeBlocks(*lastJob);
         mergeQueue.pop();
     }
@@ -51,7 +52,7 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-static uint64_t sortIntoTmp(const char *inFilePath, const filesystem::path &tmpFilePath, const long &blockSize)
+static uint64_t sortIntoTmp(const string inFilePath, const filesystem::path &tmpFilePath, const long &blockSize)
 {
     auto frIn = AEPKSS::FileReader(inFilePath);
     auto fwTmp = AEPKSS::FileWriter(tmpFilePath.generic_string().c_str());
@@ -70,7 +71,7 @@ static uint64_t sortIntoTmp(const char *inFilePath, const filesystem::path &tmpF
     return numbersRead;
 }
 
-static void mergeTmpBack(const char *outFilePath, const filesystem::path &tmpFilePath, const long &blockSize)
+static void mergeTmpBack(const string outFilePath, const filesystem::path &tmpFilePath, const long &blockSize)
 {
     auto frTmp = AEPKSS::FileReader(tmpFilePath.generic_string().c_str());
     auto fwOut = AEPKSS::FileWriter(outFilePath);
@@ -132,6 +133,9 @@ static void mergeTmpBack(const char *outFilePath, const filesystem::path &tmpFil
 
 static void mergeBlocks(const MergeJob &job)
 {
+    if (PRINT_JOB_INFO)
+        cout << "\t\tJob_ | id0: " << job.blockId0 << ", id1: " << job.blockId1 << ", seek0: " << job.blockSeek0 << ", seek1: " << job.blockSeek1 << ", OIT: " << job.outFileIsTmp << ", infile: " << job.inFilePath << endl;
+
     auto frIn0 = AEPKSS::FileReader(job.inFilePath);
     auto frIn1 = AEPKSS::FileReader(job.inFilePath);
     auto fwOut = AEPKSS::FileWriter(job.outFilePath);
@@ -196,6 +200,9 @@ static void mergeBlocks(const MergeJob &job)
         }
     } while (true);
 
+    // flush buffer
+    fwOut.write(out);
+
     // empty remaining vector elements, they must be sorted by now
     for (; in0iter != in0.end(); in0iter++)
     {
@@ -211,7 +218,7 @@ static void mergeBlocks(const MergeJob &job)
     fwOut.dispose();
 }
 
-static queue<MergeJob> createMergeJobs(const uint64_t &blockSize, uint64_t &numbersRead, const char *tmpFilePath, const char *outFilePath)
+static queue<MergeJob> createMergeJobs(const uint64_t &blockSize, uint64_t &numbersRead, const string tmpFilePath, const string outFilePath)
 {
     queue<MergeJob> mq;
     vector<MergeJob> intermediateJobs;
@@ -256,8 +263,6 @@ static queue<MergeJob> createMergeJobs(const uint64_t &blockSize, uint64_t &numb
 
 static MergeJob mergeJobs(const MergeJob &job0, const MergeJob *optJob1)
 {
-    // FIXME: this messes with In/Out file assignment
-    // TODO: check if all variables allign (especially SEEK)
     if (optJob1 == nullptr)
     {
         return (MergeJob){

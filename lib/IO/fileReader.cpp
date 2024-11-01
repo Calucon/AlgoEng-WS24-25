@@ -2,7 +2,9 @@
 
 using namespace AEPKSS;
 
-FileReader::FileReader(const char *filePath)
+FileReader::FileReader(const char *filePath) : FileReader(string(filePath)) {}
+
+FileReader::FileReader(const string filePath)
 {
     this->filePath = filePath;
     this->isDisposed = false;

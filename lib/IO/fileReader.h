@@ -10,7 +10,7 @@ namespace AEPKSS
     class FileReader
     {
     private:
-        const char *filePath;
+        string filePath;
         bool isDisposed;
         ifstream handle;
 
@@ -19,6 +19,10 @@ namespace AEPKSS
          * Open file handle
          */
         FileReader(const char *filePath);
+        /**
+         * Open file handle
+         */
+        FileReader(const string filePath);
 
         /**
          * Clean up and close file handle

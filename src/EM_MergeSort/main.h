@@ -14,6 +14,10 @@
 
 using namespace std;
 
+#ifndef PRINT_JOB_INFO
+#define PRINT_JOB_INFO false
+#endif
+
 #ifndef TMP_FILE_NAME
 #define TMP_FILE_NAME "em_mergesort.tmp"
 #endif
@@ -35,8 +39,8 @@ struct MergeJob
     /** number of times the block fits into the buffer */
     const uint32_t blockInBufferCount;
 
-    const char *inFilePath;
-    const char *outFilePath;
+    const string inFilePath;
+    const string outFilePath;
     const bool outFileIsTmp;
 };
 
@@ -44,12 +48,12 @@ struct MergeJob
  * Reads the Input file, sorts the individual blocks and writes the result in a TMP file
  * @return numbers read
  */
-static uint64_t sortIntoTmp(const char *inFilePath, const filesystem::path &tmpFilePath, const long &blockSize);
+static uint64_t sortIntoTmp(const string inFilePath, const filesystem::path &tmpFilePath, const long &blockSize);
 
 /**
  * Reads the TMP file and merges the blocks into the output file
  */
-static void mergeTmpBack(const char *outFilePath, const filesystem::path &tmpFilePath, const long &blockSize);
+static void mergeTmpBack(const string outFilePath, const filesystem::path &tmpFilePath, const long &blockSize);
 
 /**
  * Merges two blocks together
@@ -59,7 +63,7 @@ static void mergeBlocks(const MergeJob &job);
 /**
  * Create Merge Jobs
  */
-static queue<MergeJob> createMergeJobs(const uint64_t &blockSize, uint64_t &numbersRead, const char *tmpFilePath, const char *outFilePath);
+static queue<MergeJob> createMergeJobs(const uint64_t &blockSize, uint64_t &numbersRead, const string tmpFilePath, const string outFilePath);
 
 /**
  * Combine two MergeJobs

@@ -2,7 +2,9 @@
 
 using namespace AEPKSS;
 
-FileWriter::FileWriter(const char *filePath)
+FileWriter::FileWriter(const char *filePath) : FileWriter(string(filePath)) {}
+
+FileWriter::FileWriter(const string filePath)
 {
     this->filePath = filePath;
     this->isDisposed = false;
