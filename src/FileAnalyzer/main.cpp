@@ -130,22 +130,8 @@ bool threaded(AEPKSS::FileReader &fr, chrono::steady_clock::time_point t1)
 
 void numrange(AEPKSS::FileReader &fr, uint64_t rangeStart, uint64_t rangeEnd)
 {
-    // skip
-    if (rangeStart > 0)
-    {
-        long toSkip = rangeStart - 1;
-        while (toSkip > 0)
-        {
-            auto numRead = fr.read(min((long)FILEANALYZER_BUFFER_SIZE, toSkip));
-
-            toSkip -= numRead.size();
-            if (numRead.size() == 0)
-            {
-                cout << "rangeStart is larger than the file, abort!" << endl;
-                return;
-            }
-        }
-    }
+    // skip numbers
+    fr.seek(rangeStart - 1);
 
     auto toRead = max((uint64_t)1UL, rangeEnd - rangeStart);
     auto i = rangeStart;

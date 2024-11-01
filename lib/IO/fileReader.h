@@ -44,5 +44,10 @@ namespace AEPKSS
          * Reads {number} integers from the file (if possible)
          */
         vector<uint32_t> read(uint32_t numbers);
+
+        /**
+         * Numbers to skip
+         */
+        void seek(uint64_t numbers);
     };
 }

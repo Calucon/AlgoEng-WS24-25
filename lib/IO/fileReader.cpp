@@ -59,3 +59,11 @@ vector<uint32_t> FileReader::read(uint32_t numbers)
 
     return v;
 }
+
+void FileReader::seek(uint64_t numbers)
+{
+    if (!handle.good())
+        return;
+
+    handle.seekg(numbers * sizeof(uint32_t));
+}

@@ -62,7 +62,8 @@
         "mutex": "cpp",
         "format": "cpp",
         "queue": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "filesystem": "cpp"
     },
     "editor.formatOnSave": true,
     "C_Cpp.default.cppStandard": "c++23",
