@@ -132,7 +132,20 @@ void numrange(AEPKSS::FileReader &fr, uint64_t rangeStart, uint64_t rangeEnd)
 {
     // skip
     if (rangeStart > 0)
-        fr.read(rangeStart - 1);
+    {
+        long toSkip = rangeStart - 1;
+        while (toSkip > 0)
+        {
+            auto numRead = fr.read(min((long)FILEANALYZER_BUFFER_SIZE, toSkip));
+
+            toSkip -= numRead.size();
+            if (numRead.size() == 0)
+            {
+                cout << "rangeStart is larger than the file, abort!" << endl;
+                return;
+            }
+        }
+    }
 
     auto toRead = max((uint64_t)1UL, rangeEnd - rangeStart);
     auto i = rangeStart;
