@@ -51,6 +51,7 @@ bool normal(AEPKSS::FileReader &fr, bool isSilent, chrono::steady_clock::time_po
             if (x < prev && failedAt == 0)
             {
                 failedAt = i;
+                goto loopExit;
             }
 
             i++;
@@ -64,6 +65,7 @@ bool normal(AEPKSS::FileReader &fr, bool isSilent, chrono::steady_clock::time_po
         }
     }
 
+loopExit:
     auto t2 = chrono::high_resolution_clock::now();
     if (failedAt == 0)
     {
@@ -72,7 +74,7 @@ bool normal(AEPKSS::FileReader &fr, bool isSilent, chrono::steady_clock::time_po
     }
     else
     {
-        cout << "File analyzed in " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms! | Failed: " << failedAt << endl;
+        cout << "File analyzed in " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms! | Failed at: " << failedAt << endl;
         return false;
     }
 }
