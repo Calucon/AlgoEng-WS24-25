@@ -257,6 +257,7 @@ static queue<MergeJob> createMergeJobs(const uint64_t &blockSize, uint64_t &numb
 static MergeJob mergeJobs(const MergeJob &job0, const MergeJob *optJob1)
 {
     // FIXME: this messes with In/Out file assignment
+    // TODO: check if all variables allign (especially SEEK)
     if (optJob1 == nullptr)
     {
         return (MergeJob){
