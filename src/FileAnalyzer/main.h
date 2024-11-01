@@ -20,5 +20,6 @@ using namespace std;
 
 bool normal(AEPKSS::FileReader &fr, bool isSilent, chrono::steady_clock::time_point t1);
 bool threaded(AEPKSS::FileReader &fr, chrono::steady_clock::time_point t1);
+void numrange(AEPKSS::FileReader &fr, uint64_t rangeStart, uint64_t rangeEnd);
 
 static bool evalFuture(queue<shared_future<bool>> &futures, chrono::steady_clock::time_point t1);

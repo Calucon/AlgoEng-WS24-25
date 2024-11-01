@@ -5,9 +5,10 @@ int main(int argc, char *argv[])
     if (argc < 2)
     {
         cout << "Usage:" << endl;
-        cout << "  ./FileAnalyzer {filepath} <silent|threaded>" << endl;
+        cout << "  ./FileAnalyzer {filepath} <silent|threaded|numrange> <rangeStart> <rangeEnd>" << endl;
         cout << "      silent -> normal analysis, no intermediate console output" << endl;
         cout << "      threaded -> multi-threaded analysis" << endl;
+        cout << "      numrange -> print numbers from the given range" << endl;
         return EXIT_FAILURE;
     }
 
@@ -15,6 +16,11 @@ int main(int argc, char *argv[])
     auto argv2str = string(argv[2]);
     auto isSilent = argc >= 3 && argv2str == "silent";
     auto isThreaded = argc >= 3 && argv2str == "threaded";
+    auto isNumrange = argc >= 3 && argv2str == "numrange";
+
+    char *strEnd; // just used for long parsing
+    const auto rangeStart = argc >= 4 ? max(0L, strtol(argv[3], &strEnd, 10)) : 0;
+    const auto rangeEnd = argc >= 5 ? max(rangeStart, strtol(argv[4], &strEnd, 10)) : rangeStart;
 
     const auto BUFFER_SIZE = isThreaded ? FILEANALYZER_BUFFER_SIZE_THREADED : FILEANALYZER_BUFFER_SIZE;
 
@@ -24,7 +30,9 @@ int main(int argc, char *argv[])
     // open file handle
     auto fr = AEPKSS::FileReader(filePath);
 
-    if (isThreaded)
+    if (isNumrange)
+        numrange(fr, rangeStart, rangeEnd);
+    else if (isThreaded)
         threaded(fr, t1);
     else
         normal(fr, isSilent, t1);
@@ -35,7 +43,7 @@ int main(int argc, char *argv[])
 
 bool normal(AEPKSS::FileReader &fr, bool isSilent, chrono::steady_clock::time_point t1)
 {
-    uint32_t prev = 0;
+    uint32_t prev = 0, curr = 0;
     uint64_t i = 0;
     uint64_t failedAt = 0;
 
@@ -48,18 +56,19 @@ bool normal(AEPKSS::FileReader &fr, bool isSilent, chrono::steady_clock::time_po
     {
         for (auto x : buffer)
         {
-            if (x < prev && failedAt == 0)
+            curr = x;
+            if (curr < prev && failedAt == 0)
             {
                 failedAt = i;
                 goto loopExit;
             }
 
             i++;
-            prev = x;
+            prev = curr;
 
             if (!isSilent)
             {
-                sprintf(buf, "%010d", x);
+                sprintf(buf, "%010d", curr);
                 cout << buf << " [" << i << "]" << endl;
             }
         }
@@ -74,6 +83,7 @@ loopExit:
     }
     else
     {
+        cout << "\tPrev: " << prev << " | Curr: " << curr << endl;
         cout << "File analyzed in " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms! | Failed at: " << failedAt << endl;
         return false;
     }
@@ -116,6 +126,22 @@ bool threaded(AEPKSS::FileReader &fr, chrono::steady_clock::time_point t1)
     auto t2 = chrono::high_resolution_clock::now();
     cout << "File analyzed in " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms! | Everything is sorted correctly!" << endl;
     return true;
+}
+
+void numrange(AEPKSS::FileReader &fr, uint64_t rangeStart, uint64_t rangeEnd)
+{
+    // skip
+    if (rangeStart > 0)
+        fr.read(rangeStart - 1);
+
+    auto toRead = max((uint64_t)1UL, rangeEnd - rangeStart);
+    auto i = rangeStart;
+
+    for (auto num : fr.read(toRead))
+    {
+        cout << "[" << i << "] " << num << endl;
+        i++;
+    }
 }
 
 static bool evalFuture(queue<shared_future<bool>> &futures, chrono::steady_clock::time_point t1)
