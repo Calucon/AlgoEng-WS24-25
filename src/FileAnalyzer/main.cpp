@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     const auto BUFFER_SIZE = isThreaded ? FILEANALYZER_BUFFER_SIZE_THREADED : FILEANALYZER_BUFFER_SIZE;
 
     auto t1 = chrono::high_resolution_clock::now();
-    cout << "Analyzing file: " << filePath << " | Buffer: " << BUFFER_SIZE << ") args: " << (isThreaded ? "threaded" : (isSilent ? "silent" : "")) << endl;
+    cout << "Analyzing file: " << filePath << " | Buffer: " << BUFFER_SIZE << ", args: " << (isThreaded ? "threaded" : (isSilent ? "silent" : "")) << endl;
 
     // open file handle
     auto fr = AEPKSS::FileReader(filePath);
