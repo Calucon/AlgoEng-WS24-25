@@ -2,47 +2,112 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3)
+    if (argc < 4)
     {
         cout << "Usage:" << endl;
-        cout << "  ./MergeSort {inFile} {outFile}" << endl;
+        cout << "  ./MergeSort {inFile} {outFile} {blockSize}" << endl;
         return EXIT_FAILURE;
     }
 
-    auto inFilePath = argv[1];
-    auto outFilePath = argv[2];
+    const auto inFilePath = argv[1];
+    const auto outFilePath = argv[2];
+    const auto tmpFilePath = filesystem::temp_directory_path().append(TMP_FILE_NAME);
 
-    cout << "IN: " << inFilePath << " | OUT: " << outFilePath << endl;
+    char *strEnd; // just used for long parsing
+    const auto blockSize = max(1L, strtol(argv[3], &strEnd, 10));
 
-    auto fr = AEPKSS::FileReader(inFilePath);
-    auto fw = AEPKSS::FileWriter(outFilePath);
-
-#pragma region testing
+    cout << "IN: " << inFilePath << " | OUT: " << outFilePath << " | B: " << blockSize << endl;
     auto t1 = chrono::high_resolution_clock::now();
 
-    vector<uint32_t> data;
-    optional<uint32_t> tmp;
+    // sort individual blocks
+    sortIntoTmp(inFilePath, tmpFilePath, blockSize);
+    auto t2 = chrono::high_resolution_clock::now();
+    cout << "\tBlock Sorting complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
 
-    while ((tmp = fr.read()).has_value())
+    // merge individual blocks
+    mergeTmpBack(outFilePath, tmpFilePath, blockSize);
+    auto t3 = chrono::high_resolution_clock::now();
+    cout << "\tMerging complete after " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
+
+    /// delete tmp file
+    filesystem::remove(tmpFilePath);
+    cout << "Task complete!" << endl;
+    return EXIT_SUCCESS;
+}
+
+static void sortIntoTmp(const char *inFilePath, const filesystem::path &tmpFilePath, const long &blockSize)
+{
+    auto frIn = AEPKSS::FileReader(inFilePath);
+    auto fwTmp = AEPKSS::FileWriter(tmpFilePath.generic_string().c_str());
+
+    vector<uint32_t> data;
+    data.reserve(blockSize);
+    while ((data = frIn.read(blockSize)).size() > 0)
     {
-        data.push_back(tmp.value());
+        AEPKSS::Sort::intro_sort(data);
+        fwTmp.write(data);
     }
 
-    fr.dispose();
-    auto t2 = chrono::high_resolution_clock::now();
-    cout << "\tReading complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
+    frIn.dispose();
+    fwTmp.dispose();
+}
 
-    AEPKSS::Sort::quick_sort(data);
-    auto t3 = chrono::high_resolution_clock::now();
-    cout << "\tSorting complete after " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
+static void mergeTmpBack(const char *outFilePath, const filesystem::path &tmpFilePath, const long &blockSize)
+{
+    auto frTmp = AEPKSS::FileReader(tmpFilePath.generic_string().c_str());
+    auto fwOut = AEPKSS::FileWriter(outFilePath);
 
-    fw.write(data);
-    fw.dispose();
-    auto t4 = chrono::high_resolution_clock::now();
-    cout << "\tWriting complete after " << ((chrono::duration<double, std::milli>)(t4 - t3)).count() << "ms" << endl;
+    vector<uint32_t> in0, in1, out;
+    vector<uint32_t>::iterator in0iter = in0.end(), in1iter = in1.end();
 
-#pragma endregion
+    do
+    {
+        // load more elements into in-Buffer if necessary
+        if (in0iter == in0.end())
+        {
+            in0 = frTmp.read(blockSize);
+            in0iter = in0.begin();
+            if (in0.empty())
+                break;
+        }
+        if (in1iter == in1.end())
+        {
+            in1 = frTmp.read(blockSize);
+            in1iter = in1.begin();
+            if (in1.empty())
+                break;
+        }
 
-    cout << "Sorting complete!" << endl;
-    return EXIT_SUCCESS;
+        // empty buffer if full
+        if (out.size() == blockSize)
+        {
+            fwOut.write(out);
+            out.clear();
+            out.reserve(blockSize);
+        }
+
+        if (*in0iter < *in1iter)
+        {
+            out.push_back(*in0iter);
+            in0iter++;
+        }
+        else
+        {
+            out.push_back(*in1iter);
+            in1iter++;
+        }
+    } while (true);
+
+    // empty remaining vector elements, they must be sorted by now
+    for (; in0iter != in0.end(); in0iter++)
+    {
+        fwOut.write(*in0iter);
+    }
+    for (; in1iter != in1.end(); in1iter++)
+    {
+        fwOut.write(*in1iter);
+    }
+
+    frTmp.dispose();
+    fwOut.dispose();
 }
