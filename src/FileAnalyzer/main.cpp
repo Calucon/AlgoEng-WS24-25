@@ -84,9 +84,17 @@ bool threaded(AEPKSS::FileReader &fr, chrono::steady_clock::time_point t1)
     unsigned int threadCount = 2 * max(1U, std::thread::hardware_concurrency());
     queue<shared_future<bool>> futures;
     vector<uint32_t> buffer;
+    uint32_t last = 0;
 
     while ((buffer = fr.read(FILEANALYZER_BUFFER_SIZE_THREADED)).size() > 0)
     {
+        // check between buffers
+        if (last > buffer.front())
+        {
+            break;
+        }
+        last = buffer.back();
+
         if (futures.size() >= threadCount)
         {
             if (!evalFuture(futures, t1))
