@@ -17,12 +17,15 @@ int main(int argc, char *argv[])
 
     const auto inFilePath = string(argv[1]);
     const auto outFilePath = string(argv[2]);
-    // const auto tmpFilePath = filesystem::temp_directory_path().append(TMP_FILE_NAME).generic_string();
-    const string tmpFilePath = TMP_FILE_NAME;
+    const auto tmpFilePath = filesystem::temp_directory_path().append(TMP_FILE_NAME).generic_string();
+    // const string tmpFilePath = TMP_FILE_NAME;
     PRINT_PROGRESS_INFO = argc >= 5 && string(argv[4]) == "progress";
 
     char *strEnd; // just used for long parsing
     const auto blockSize = max(1L, strtol(argv[3], &strEnd, 10));
+
+    filesystem::remove(tmpFilePath);
+    filesystem::remove(outFilePath);
 
     cout << "IN: " << inFilePath << " | OUT: " << outFilePath << " | B: " << blockSize << endl;
     auto t1 = chrono::high_resolution_clock::now();
@@ -46,7 +49,9 @@ int main(int argc, char *argv[])
                 cout << "\t\tJob_ | clean: " << lastJob->inFilePath << endl;
         }
         else
+        {
             mergeBlocks(*lastJob);
+        }
         mergeQueue.pop();
     }
     auto t3 = chrono::high_resolution_clock::now();
@@ -56,13 +61,13 @@ int main(int argc, char *argv[])
     if (lastJob->isOutFileTmp)
     {
         if (PRINT_PROGRESS_INFO)
-            cout << "rename: " << tmpFilePath << " -> " << filesystem::path(string(outFilePath)).generic_string() << endl;
+            cout << "\t\trename: " << tmpFilePath << " -> " << filesystem::path(string(outFilePath)).generic_string() << endl;
         filesystem::rename(tmpFilePath, filesystem::path(string(outFilePath)));
     }
     else
     {
         if (PRINT_PROGRESS_INFO)
-            cout << "delete: " << tmpFilePath << endl;
+            cout << "\t\tdelete: " << tmpFilePath << endl;
         filesystem::remove(tmpFilePath);
     }
 
@@ -100,11 +105,6 @@ static uint64_t sortIntoTmp(const string inFilePath, const string &tmpFilePath, 
 
 static void mergeBlocks(const MergeJob &job)
 {
-    if (PRINT_PROGRESS_INFO)
-        cout << "\t\tJob_ | id0: " << job.blockId0 << ", id1: " << job.blockId1
-             << ", seek0: " << job.blockSeek0 << ", seek1: " << job.blockSeek1
-             << ", OIT: " << job.isOutFileTmp << ", in: " << job.inFilePath << ", out: " << job.outFilePath << endl;
-
     auto frIn0 = AEPKSS::FileReader(job.inFilePath);
     auto frIn1 = AEPKSS::FileReader(job.inFilePath);
     auto fwOut = AEPKSS::FileWriter(job.outFilePath, true);
@@ -115,6 +115,12 @@ static void mergeBlocks(const MergeJob &job)
     const auto bytesToRead = job.blockInBufferCount * bufferSize;
     uint64_t bytesLeftToRead0 = bytesToRead;
     uint64_t bytesLeftToRead1 = bytesToRead;
+
+    if (PRINT_PROGRESS_INFO)
+        cout << "\t\tJob_ | id0: " << job.blockId0 << ", id1: " << job.blockId1
+             << ", seek0: " << job.blockSeek0 << ", seek1: " << job.blockSeek1
+             << ", BS: " << bytesToRead << ", OIT: " << job.isOutFileTmp
+             << ", in: " << job.inFilePath << ", out: " << job.outFilePath << endl;
 
     vector<uint32_t> in0, in1, out;
     vector<uint32_t>::iterator in0iter = in0.end(), in1iter = in1.end();
@@ -225,7 +231,6 @@ static queue<MergeJob> createMergeJobs(const uint64_t &blockSize, uint64_t &numb
         intermediateJobs.push_back(job);
     }
 
-    // FIXME: merge task generation not working properly
     while (intermediateJobs.size() > 1)
     {
         mq.push_range(intermediateJobs);
@@ -269,8 +274,8 @@ static MergeJob mergeJobs(const MergeJob &job0, const MergeJob *optJob1)
     return (MergeJob){
         .blockId0 = job0.blockId0,
         .blockId1 = job1.blockId0,
-        .blockSeek0 = 2 * job0.blockSeek0,
-        .blockSeek1 = 2 * job1.blockSeek0,
+        .blockSeek0 = job0.blockSeek0,
+        .blockSeek1 = job1.blockSeek0,
         .bufferSize = job0.bufferSize,
         .blockInBufferCount = 2 * job0.blockInBufferCount,
         .inFilePath = job0.outFilePath,
