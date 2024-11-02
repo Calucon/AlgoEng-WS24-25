@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     }
 
     auto filePath = argv[1];
-    auto argv2str = string(argv[2]);
+    auto argv2str = argc >= 2 ? string(argv[2]) : "";
     auto isSilent = argc >= 3 && argv2str == "silent";
     auto isThreaded = argc >= 3 && argv2str == "threaded";
     auto isNumrange = argc >= 3 && argv2str == "numrange";
