@@ -13,6 +13,7 @@
 #include "../../lib/Sort/all.h"
 
 using namespace std;
+using time_point = std::chrono::_V2::system_clock::time_point;
 
 #ifndef TMP_FILE_NAME
 #define TMP_FILE_NAME "em_mergesort.tmp"

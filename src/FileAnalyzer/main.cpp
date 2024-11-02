@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
     const auto BUFFER_SIZE = isThreaded ? FILEANALYZER_BUFFER_SIZE_THREADED : FILEANALYZER_BUFFER_SIZE;
 
-    auto t1 = chrono::high_resolution_clock::now();
+    time_point t1 = chrono::high_resolution_clock::now();
     cout << "Analyzing file: " << filePath << " | Buffer: " << BUFFER_SIZE << ", args: " << (isThreaded ? "threaded" : (isSilent ? "silent" : "")) << endl;
 
     // open file handle
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     fr.dispose();
 }
 
-bool normal(AEPKSS::FileReader &fr, bool isSilent, chrono::steady_clock::time_point t1)
+bool normal(AEPKSS::FileReader &fr, bool isSilent, time_point t1)
 {
     uint32_t prev = 0, curr = 0;
     uint64_t i = 0;
@@ -75,7 +75,7 @@ bool normal(AEPKSS::FileReader &fr, bool isSilent, chrono::steady_clock::time_po
     }
 
 loopExit:
-    auto t2 = chrono::high_resolution_clock::now();
+    time_point t2 = chrono::high_resolution_clock::now();
     if (failedAt == 0)
     {
         cout << "File analyzed in " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms! | Everything is sorted correctly!" << endl;
@@ -89,7 +89,7 @@ loopExit:
     }
 }
 
-bool threaded(AEPKSS::FileReader &fr, chrono::steady_clock::time_point t1)
+bool threaded(AEPKSS::FileReader &fr, time_point t1)
 {
     unsigned int threadCount = 2 * max(1U, std::thread::hardware_concurrency());
     queue<shared_future<bool>> futures;
@@ -123,7 +123,7 @@ bool threaded(AEPKSS::FileReader &fr, chrono::steady_clock::time_point t1)
             return false;
     }
 
-    auto t2 = chrono::high_resolution_clock::now();
+    time_point t2 = chrono::high_resolution_clock::now();
     cout << "File analyzed in " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms! | Everything is sorted correctly!" << endl;
     return true;
 }
@@ -143,14 +143,14 @@ void numrange(AEPKSS::FileReader &fr, uint64_t rangeStart, uint64_t rangeEnd)
     }
 }
 
-static bool evalFuture(queue<shared_future<bool>> &futures, chrono::steady_clock::time_point t1)
+static bool evalFuture(queue<shared_future<bool>> &futures, time_point t1)
 {
     auto f = futures.front();
 
     f.wait();
     if (!f.get())
     {
-        auto t2 = chrono::high_resolution_clock::now();
+        time_point t2 = chrono::high_resolution_clock::now();
         cout << "File analyzed in " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms! | File is NOT sorted!" << endl;
         return false;
     }

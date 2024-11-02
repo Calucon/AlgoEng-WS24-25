@@ -28,11 +28,11 @@ int main(int argc, char *argv[])
     filesystem::remove(outFilePath);
 
     cout << "IN: " << inFilePath << " | OUT: " << outFilePath << " | B: " << blockSize << endl;
-    auto t1 = chrono::high_resolution_clock::now();
+    time_point t1 = chrono::high_resolution_clock::now();
 
     // sort individual blocks
     auto numbersRead = sortIntoTmp(inFilePath, tmpFilePath, blockSize);
-    auto t2 = chrono::high_resolution_clock::now();
+    time_point t2 = chrono::high_resolution_clock::now();
     cout << "\tBlock Sorting complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
 
     // merge individual blocks
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
         }
         mergeQueue.pop();
     }
-    auto t3 = chrono::high_resolution_clock::now();
+    time_point t3 = chrono::high_resolution_clock::now();
     cout << "\tMerging complete after " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
 
     // delete or move tmp file
@@ -82,7 +82,7 @@ static uint64_t sortIntoTmp(const string inFilePath, const string &tmpFilePath, 
     auto fwTmp = AEPKSS::FileWriter(tmpFilePath);
     uint64_t numbersRead = 0;
 
-    auto t1 = chrono::high_resolution_clock::now();
+    time_point t1 = chrono::high_resolution_clock::now();
     vector<uint32_t> data;
     while ((data = frIn.read(blockSize)).size() > 0)
     {
@@ -92,7 +92,7 @@ static uint64_t sortIntoTmp(const string inFilePath, const string &tmpFilePath, 
 
         if (PRINT_PROGRESS_INFO)
         {
-            auto t2 = chrono::high_resolution_clock::now();
+            time_point t2 = chrono::high_resolution_clock::now();
             cout << "\t\tBlock Sorting Step complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
             t1 = t2;
         }
