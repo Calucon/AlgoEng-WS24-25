@@ -233,7 +233,8 @@ static queue<MergeJob> createMergeJobs(const uint64_t &blockSize, uint64_t &numb
 
     while (intermediateJobs.size() > 1)
     {
-        mq.push_range(intermediateJobs);
+        std::ranges::for_each(intermediateJobs, [&mq](auto e)
+                              { mq.push(e); });
         mq.push((MergeJob){
             .inFilePath = intermediateJobs.front().inFilePath,
             .doCleanInFile = true});
@@ -249,7 +250,8 @@ static queue<MergeJob> createMergeJobs(const uint64_t &blockSize, uint64_t &numb
         }
     }
 
-    mq.push_range(intermediateJobs);
+    std::ranges::for_each(intermediateJobs, [&mq](auto e)
+                          { mq.push(e); });
     return mq;
 }
 

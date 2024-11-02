@@ -1,6 +1,6 @@
+#include <cstdint>
 #include <vector>
 
-#include <iostream>
 using namespace std;
 
 namespace AEPKSS::Sort
