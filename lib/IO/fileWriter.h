@@ -16,11 +16,11 @@ namespace AEPKSS
         /**
          * Open file handle
          */
-        FileWriter(const char *filePath);
+        FileWriter(const char *filePath, bool append = false);
         /**
          * Open file handle
          */
-        FileWriter(const string filePath);
+        FileWriter(const string filePath, bool append = false);
 
         /**
          * Clean up and close file handle

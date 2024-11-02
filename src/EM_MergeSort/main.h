@@ -37,14 +37,16 @@ struct MergeJob
 
     const string inFilePath;
     const string outFilePath;
-    const bool outFileIsTmp;
+
+    const bool isOutFileTmp;
+    const bool doCleanInFile;
 };
 
 /**
  * Reads the Input file, sorts the individual blocks and writes the result in a TMP file
  * @return numbers read
  */
-static uint64_t sortIntoTmp(const string inFilePath, const filesystem::path &tmpFilePath, const long &blockSize);
+static uint64_t sortIntoTmp(const string inFilePath, const string &tmpFilePath, const long &blockSize);
 
 /**
  * Merges two blocks together

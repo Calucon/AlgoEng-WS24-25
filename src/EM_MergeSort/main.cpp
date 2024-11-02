@@ -17,7 +17,8 @@ int main(int argc, char *argv[])
 
     const auto inFilePath = string(argv[1]);
     const auto outFilePath = string(argv[2]);
-    const auto tmpFilePath = filesystem::temp_directory_path().append(TMP_FILE_NAME);
+    // const auto tmpFilePath = filesystem::temp_directory_path().append(TMP_FILE_NAME).generic_string();
+    const string tmpFilePath = TMP_FILE_NAME;
     PRINT_PROGRESS_INFO = argc >= 5 && string(argv[4]) == "progress";
 
     char *strEnd; // just used for long parsing
@@ -32,36 +33,48 @@ int main(int argc, char *argv[])
     cout << "\tBlock Sorting complete after " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
 
     // merge individual blocks
-    queue<MergeJob> mergeQueue = createMergeJobs(blockSize, numbersRead, tmpFilePath.generic_string(), outFilePath);
+    queue<MergeJob> mergeQueue = createMergeJobs(blockSize, numbersRead, tmpFilePath, outFilePath);
     MergeJob *lastJob = nullptr;
     cout << "\tQueue Size: " << mergeQueue.size() << endl;
     while (!mergeQueue.empty())
     {
         lastJob = &mergeQueue.front();
-        // cout << "Job | id0: " << lastJob->blockId0 << ", id1: " << lastJob->blockId1 << ", seek0: " << lastJob->blockSeek0 << ", seek1: " << lastJob->blockSeek1 << ", OIT: " << lastJob->outFileIsTmp << endl;
-        mergeBlocks(*lastJob);
+        if (lastJob->doCleanInFile)
+        {
+            filesystem::remove(filesystem::path(lastJob->inFilePath));
+            if (PRINT_PROGRESS_INFO)
+                cout << "\t\tJob_ | clean: " << lastJob->inFilePath << endl;
+        }
+        else
+            mergeBlocks(*lastJob);
         mergeQueue.pop();
     }
     auto t3 = chrono::high_resolution_clock::now();
     cout << "\tMerging complete after " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
 
     // delete or move tmp file
-    if (lastJob->outFileIsTmp)
+    if (lastJob->isOutFileTmp)
     {
+        if (PRINT_PROGRESS_INFO)
+            cout << "rename: " << tmpFilePath << " -> " << filesystem::path(string(outFilePath)).generic_string() << endl;
         filesystem::rename(tmpFilePath, filesystem::path(string(outFilePath)));
     }
     else
+    {
+        if (PRINT_PROGRESS_INFO)
+            cout << "delete: " << tmpFilePath << endl;
         filesystem::remove(tmpFilePath);
+    }
 
     cout << "Task complete!" << endl;
     cout << endl;
     return EXIT_SUCCESS;
 }
 
-static uint64_t sortIntoTmp(const string inFilePath, const filesystem::path &tmpFilePath, const long &blockSize)
+static uint64_t sortIntoTmp(const string inFilePath, const string &tmpFilePath, const long &blockSize)
 {
     auto frIn = AEPKSS::FileReader(inFilePath);
-    auto fwTmp = AEPKSS::FileWriter(tmpFilePath.generic_string());
+    auto fwTmp = AEPKSS::FileWriter(tmpFilePath);
     uint64_t numbersRead = 0;
 
     auto t1 = chrono::high_resolution_clock::now();
@@ -88,11 +101,13 @@ static uint64_t sortIntoTmp(const string inFilePath, const filesystem::path &tmp
 static void mergeBlocks(const MergeJob &job)
 {
     if (PRINT_PROGRESS_INFO)
-        cout << "\t\tJob_ | id0: " << job.blockId0 << ", id1: " << job.blockId1 << ", seek0: " << job.blockSeek0 << ", seek1: " << job.blockSeek1 << ", OIT: " << job.outFileIsTmp << ", infile: " << job.inFilePath << endl;
+        cout << "\t\tJob_ | id0: " << job.blockId0 << ", id1: " << job.blockId1
+             << ", seek0: " << job.blockSeek0 << ", seek1: " << job.blockSeek1
+             << ", OIT: " << job.isOutFileTmp << ", in: " << job.inFilePath << ", out: " << job.outFilePath << endl;
 
     auto frIn0 = AEPKSS::FileReader(job.inFilePath);
     auto frIn1 = AEPKSS::FileReader(job.inFilePath);
-    auto fwOut = AEPKSS::FileWriter(job.outFilePath);
+    auto fwOut = AEPKSS::FileWriter(job.outFilePath, true);
     frIn0.seek(job.blockSeek0);
     frIn1.seek(job.blockSeek1);
 
@@ -167,6 +182,18 @@ static void mergeBlocks(const MergeJob &job)
         fwOut.write(*in1iter);
     }
 
+    // in case there is anything left that is not already read
+    while (bytesLeftToRead0 > 0)
+    {
+        fwOut.write(frIn0.read(bufferSize));
+        bytesLeftToRead0 -= bufferSize;
+    }
+    while (bytesLeftToRead1 > 0)
+    {
+        fwOut.write(frIn1.read(bufferSize));
+        bytesLeftToRead1 -= bufferSize;
+    }
+
     frIn0.dispose();
     frIn1.dispose();
     fwOut.dispose();
@@ -193,13 +220,19 @@ static queue<MergeJob> createMergeJobs(const uint64_t &blockSize, uint64_t &numb
             .blockInBufferCount = 1,
             .inFilePath = tmpFilePath,
             .outFilePath = outFilePath,
-            .outFileIsTmp = false};
+            .isOutFileTmp = false,
+            .doCleanInFile = false};
         intermediateJobs.push_back(job);
     }
 
+    // FIXME: merge task generation not working properly
     while (intermediateJobs.size() > 1)
     {
         mq.push_range(intermediateJobs);
+        mq.push((MergeJob){
+            .inFilePath = intermediateJobs.front().inFilePath,
+            .doCleanInFile = true});
+
         vector<MergeJob> jobsToMerge = intermediateJobs;
         intermediateJobs.clear();
 
@@ -226,9 +259,10 @@ static MergeJob mergeJobs(const MergeJob &job0, const MergeJob *optJob1)
             .blockSeek1 = job0.blockSeek1,
             .bufferSize = job0.bufferSize,
             .blockInBufferCount = job0.blockInBufferCount,
-            .inFilePath = job0.inFilePath,
-            .outFilePath = job0.outFilePath,
-            .outFileIsTmp = !job0.outFileIsTmp};
+            .inFilePath = job0.outFilePath,
+            .outFilePath = job0.inFilePath,
+            .isOutFileTmp = !job0.isOutFileTmp,
+            .doCleanInFile = false};
     }
 
     auto job1 = *optJob1;
@@ -241,5 +275,6 @@ static MergeJob mergeJobs(const MergeJob &job0, const MergeJob *optJob1)
         .blockInBufferCount = 2 * job0.blockInBufferCount,
         .inFilePath = job0.outFilePath,
         .outFilePath = job0.inFilePath,
-        .outFileIsTmp = !job0.outFileIsTmp};
+        .isOutFileTmp = !job0.isOutFileTmp,
+        .doCleanInFile = false};
 }

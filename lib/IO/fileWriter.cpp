@@ -2,14 +2,18 @@
 
 using namespace AEPKSS;
 
-FileWriter::FileWriter(const char *filePath) : FileWriter(string(filePath)) {}
+FileWriter::FileWriter(const char *filePath, bool append) : FileWriter(string(filePath), append) {}
 
-FileWriter::FileWriter(const string filePath)
+FileWriter::FileWriter(const string filePath, bool append)
 {
     this->filePath = filePath;
     this->isDisposed = false;
 
-    this->handle.open(filePath, ios::binary);
+    auto flags = ios::out | ios::binary;
+    if (append)
+        flags |= ios::app;
+
+    this->handle.open(filePath, flags);
 }
 
 FileWriter::~FileWriter()
