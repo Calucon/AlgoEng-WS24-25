@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
     if (lastJob->isOutFileTmp)
     {
         if (PRINT_PROGRESS_INFO)
-            cout << "\t\trename: " << tmpFilePath << " -> " << filesystem::path(string(outFilePath)).generic_string() << endl;
-        filesystem::rename(tmpFilePath, filesystem::path(string(outFilePath)));
+            cout << "\t\trename: " << tmpFilePath << " -> " << filesystem::path(outFilePath).generic_string() << endl;
+        filesystem::rename(tmpFilePath, filesystem::path(outFilePath));
     }
     else
     {
