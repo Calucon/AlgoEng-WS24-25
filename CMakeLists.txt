@@ -9,8 +9,10 @@ project(AlgoEngPKSS)
 # libraries
 add_subdirectory(lib/IO)
 add_subdirectory(lib/Sort)
+add_subdirectory(lib/Utils)
 
 # programms
 add_subdirectory(src/FileAnalyzer)
 add_subdirectory(src/FileGenerator)
 add_subdirectory(src/EM_MergeSort)
+add_subdirectory(src/ParalellSort)
