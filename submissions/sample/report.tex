@@ -1,0 +1,68 @@
+\documentclass[twocolumn]{article}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{natbib}
+
+\newcommand{\aetitle}{Algorithm Engineering Report Template} % Title of the report
+\newcommand{\studentOne}{Patrick Koston} % Name 1
+\newcommand{\studentTwo}{Simon Schwitz} % Name 2
+
+
+\begin{document}
+
+\input{ae_title}
+
+\begin{abstract}
+    The abstract gives a short summary of the project. Begin by stating the motivation of the research at hand, describe the problem and shortly describe what methods you used to solve this problem. Finally, name the most important findings and provide a brief conclusion of your work.
+\end{abstract}
+
+
+\section{Introduction}
+The Introduction is meant to lead the reader into the task at hand. State the motivation and purpose of your project, and name the achieved goals.
+
+\section{Preliminaries}
+The preliminaries provide the reader with necessary background information. In this section the basic algorithms and the ideas behind them are explained.
+
+\section{Algorithm \& Implementation}
+This section provides information about the actually used algorithms and their respective implementations. It should roughly cover the following three topics:
+\begin{itemize}
+	\item \textbf{Advanced Algorithm:}\\
+		Give and explain the advanced algorithms that you used, and compare them to the basic algorithms.
+	\item \textbf{Implementation:}\\
+		Explain how you implemented these algorithms and state what external libraries you used.
+	\item \textbf{Algorithm Engineering Concepts:}\\
+		State the algorithm engineering concepts that you used and explain why they were helpful (if applicable).
+\end{itemize}
+
+\section{Experimental Evaluation}
+In this section, the experimental setup is described and the results are presented.
+
+\subsection{Data and Hardware}%
+\label{sub:Data and Hardware}
+Here, the input data and the applied parameters are described. Further, information about the underlying hardware such as main memory and CPU is provided.
+
+\subsection{Results}%
+\label{sub:Results}
+In this part, the results are presented. This includes comparison of running time and memory usage.\\
+To visualize the results we recommend one of the following graphing tools:
+\begin{itemize}
+	\item \textbf{mathplotlib:}\\ 
+		\href{https://matplotlib.org/}{matplotlib} is a library for python which allows the direct visualization of the produced results.
+	\item \textbf{R:}\\
+		R is a programming language for statistical computations, which provides different graphing possibilities. One of the better known is \href{https://ggplot2.tidyverse.org/}{ggplot2}.
+	\item \textbf{gnuplot:}\\
+		\href{http://www.gnuplot.info/}{gnuplot} is a command-line plotting program. It can also be used to graph data directly from different programming languages, such as Java and C++.
+\end{itemize}
+
+\section{Discussion and Conclusion}
+In this section, the results are discussed and interpreted. Finally, the work is summarized shortly.
+
+\section{References}
+The references list the external resources used in the work at hand. \LaTeX$ $  offers special ways to list those resources. In this template the references are stored in the 'refs.bib' file and can be referenced with the '\textbackslash$ $cite\{REF\}' command, where REF is a label defined in the .bib file. This example shows how such a reference looks like: \cite{exa}.
+
+\bibliographystyle{abbrvnat}
+\bibliography{refs}
+
+\end{document}
