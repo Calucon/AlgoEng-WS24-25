@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
     queue<MergeJob> mergeQueue = createMergeJobs(blockSize, numbersRead, tmpFilePath, outFilePath);
     MergeJob *lastJob = nullptr;
     cout << "\tQueue Size: " << mergeQueue.size() << endl;
+    int number_of_rounds = 0;
     while (!mergeQueue.empty())
     {
         lastJob = &mergeQueue.front();
@@ -51,9 +52,11 @@ int main(int argc, char *argv[])
         else
         {
             mergeBlocks(*lastJob);
+            number_of_rounds++;
         }
         mergeQueue.pop();
     }
+    cout << "\tAmount of Rounds: " << number_of_rounds << endl;
     time_point t3 = chrono::high_resolution_clock::now();
     cout << "\tMerging complete after " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
 

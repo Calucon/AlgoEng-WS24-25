@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \usepackage{natbib}
 
-\newcommand{\aetitle}{Algorithm Engineering Report Template} % Title of the report
+\newcommand{\aetitle}{Algorithm Engineering Report 01} % Title of the report
 \newcommand{\studentOne}{Patrick Koston} % Name 1
 \newcommand{\studentTwo}{Simon Schwitz} % Name 2
 
@@ -20,28 +20,53 @@
 
 
 \section{Introduction}
-The Introduction is meant to lead the reader into the task at hand. State the motivation and purpose of your project, and name the achieved goals.
+Trying to go through files and order elements in them is a task we're often faced with, to do it in an optimal way on our system. But problems arise, if our system can't handle the files it's trying to sort, mostly in terms of the size of the file and how to read all of it into the RAM (\textbf{R}andom \textbf{A}ccess \textbf{M}emory), much less work on the input in RAM.\\
+For this, we want to focus this report on an algorithm that can work to sort in such an scenario, go over its implementation and show the results of it running on our devices.
 
 \section{Preliminaries}
-The preliminaries provide the reader with necessary background information. In this section the basic algorithms and the ideas behind them are explained.
+%Theoretical Knowledge applied here
+%The algorithm we are wanting to focus on is External Memory MergeSort, or short EM-MergeSort.
+%For the task of sorting data entries we are focusing on MergeSort. It functions by firstly dividing all entries into singular entries, then merging them together into parts and sorting them during that process. With this, we can work on smaller arrays of objects.
+The main algorithm for this project is going to be External MergeSort.\\
+MergeSort function through the concept of "divide \& conquer", as is usual with sorting algorithms. It first divides all entries into blocks, only containing the entry itself. Then, through comparing two blocks, it sorts the two entries and inserts it into a new block, which is the combination of the two previous blocks.\\
+This process repeats until only one block remains, which contains an ordered list of all entries.\\
+%For our project, we want to utilize the external memory model, so that we can work on files that are larger in size than the RAM unit utilized in our system, since we don't want to load all entries into it at once. The basis for this is to look at the memory available or space used as blocks filling the memory of the external and internal memory. 
+To continue, we need to define the External Memory (EM) model, which is the basis for the used algorithm. For it, we use an internal memory of size \textit{M}, which will be used to read our input file of size $N$. We define blocks that can be loaded into memory with size \textit{B}, which is much less than \textit{M}. 
+Furthermore, we can distinguish between the number of data blocks in the input file, which is defined as $n = \lceil \frac{N}{B}\rceil$, as well as the number of blocks that can be loaded into memory, defined as $m = \lfloor \frac{M}{B}\rfloor$.
+
 
 \section{Algorithm \& Implementation}
-This section provides information about the actually used algorithms and their respective implementations. It should roughly cover the following three topics:
+%This section provides information about the actually used algorithms and their respective implementations. It should roughly cover the following three topics:
+%\begin{itemize}
+%	\item \textbf{Advanced Algorithm:}\\
+%		Give and explain the advanced algorithms that you used, and compare them to the basic algorithms.
+%	\item \textbf{Implementation:}\\
+%		Explain how you implemented these algorithms and state what external libraries you used.
+%	\item \textbf{Algorithm Engineering Concepts:}\\
+%		State the algorithm engineering concepts that you used and explain why they were helpful (if applicable).
+%\end{itemize}
+
+External MergeSort functions through the following steps:
 \begin{itemize}
-	\item \textbf{Advanced Algorithm:}\\
-		Give and explain the advanced algorithms that you used, and compare them to the basic algorithms.
-	\item \textbf{Implementation:}\\
-		Explain how you implemented these algorithms and state what external libraries you used.
-	\item \textbf{Algorithm Engineering Concepts:}\\
-		State the algorithm engineering concepts that you used and explain why they were helpful (if applicable).
+	\item \textbf{Partitioning:}\\
+	Data entries are put into blocks \textit{B} of a defined size. Of these blocks, \textit{m} blocks are loaded into memory and are initially sorted inside their blocks. This is repeated until all blocks have been considered, sorted and written back to external memory.
+	\item \textbf{Merging:}\\
+	Two blocks are loaded into internal memory. In addition to these two blocks, one buffer in the size of a block is defined in internal memory. We then work with pointers to their respective data in the buffer and compare them. The smaller value is written into the buffer and the pointer of the block which value was written gets moved one position farther. Once the buffer is full, it is flushed into external memory, so that sorting in the remaining blocks can continue without complications. Once a block to be sorted is cleared, it is removed from internal memory and another block is loaded to be compared and sorted with the remaining block. This process is repeated until all consecutively defined blocks are run through. Then, this whole process is repeated until only one block remains.\\
+	An alternative to this approach is by utilizing the internal memory more effectively is \textit{k}-way Merging, which describes running \textit{k} blocks inside of internal memory at once. \textit{k} is defined as $m-1$, so that we still have place for one buffer and can work on the rest of the block data.
+	
 \end{itemize}
 
+Our implementation follows the same pattern as described. First, we load the file we want to use the algorithm on into blocks and write them to a temporary file. After the sorting is completed, we create MergeJobs in a queue, representing the blocks to be loaded into memory and sorted.
+
+
 \section{Experimental Evaluation}
-In this section, the experimental setup is described and the results are presented.
+The experimental setup for our implementation will be described below.
 
 \subsection{Data and Hardware}%
 \label{sub:Data and Hardware}
-Here, the input data and the applied parameters are described. Further, information about the underlying hardware such as main memory and CPU is provided.
+The data we used were files generated by our "FileGenerator", which creates a number of $int32_t$ elements that is specified when calling it. For example, running "$./FileGenerator.exe "data/1000" 1000$" creates a file that holds 1.000 of these elements. In addition, to verify if the file wasn't already sorted or to check if the output file of our implementation was sorted, we have a "FileAnalyzer". When called, it will check the defined file if it is sorted or not, printing out the number where it wasn't the case.\\
+The hardware utilized for running the experiment is as follows. For the CPU we used an Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz, found in a Lenovo ThinkPad E590. The RAM unit holds 16.0GB and the main drive with a total of 237GB, but only around 40GB of free writeable space. Due to concerns of cluttering the system and thus further impeding on the testing, we decided to define a smaller memory space to be utilized with 4GB, partly to already existing cluttering on the system, as well as the files needed to be tested with a bigger memory space not being able to put into the main drive before running the experiment.
+As such, we defined the thresholds to be tested with the defined percentages as 100,000,000 $int32_t$ element entries for 10\%, 500,000,000 for 50\%, 1,000,000,000 for 100\% and lastly 10,000,000,000 for 1,000\%. The block sizes were defined as 333,333, so that the minimal requirement of $3 \cdot B$ equalling the memory to fit two blocks and a buffer to be met. This is because we divide the 4GB of space by four, which is the space required per element in memory, then divide it by three, as per the requirement mentioned.
 
 \subsection{Results}%
 \label{sub:Results}
