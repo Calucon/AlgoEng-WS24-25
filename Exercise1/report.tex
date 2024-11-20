@@ -70,15 +70,11 @@ As such, we defined the thresholds to be tested with the defined percentages as 
 
 \subsection{Results}%
 \label{sub:Results}
-In this part, the results are presented. This includes comparison of running time and memory usage.\\
-To visualize the results we recommend one of the following graphing tools:
+For the results we tried to run our implementation multiple times, if possible, to assess changes and possible fluctuations of time found for the same data set size.\\
 \begin{itemize}
-	\item \textbf{mathplotlib:}\\ 
-		\href{https://matplotlib.org/}{matplotlib} is a library for python which allows the direct visualization of the produced results.
-	\item \textbf{R:}\\
-		R is a programming language for statistical computations, which provides different graphing possibilities. One of the better known is \href{https://ggplot2.tidyverse.org/}{ggplot2}.
-	\item \textbf{gnuplot:}\\
-		\href{http://www.gnuplot.info/}{gnuplot} is a command-line plotting program. It can also be used to graph data directly from different programming languages, such as Java and C++.
+	\item The 10\% file size was run six times, with the completion time for the block sorting ranging from 7051.66ms for the lowest required time and 7332.17ms for the longest time. The amount of MergeJobs, or amount of rounds to merge blocks, was 305. 313 if you consider the tasks of cleaning up the data, which was also consistent throughout. The time required to merge all blocks was ranging from 30796.7ms as the least time required to up to 67735.5ms for the most time from our experiments.
+	\item The 50\% file size was run three times. The completion times were ranging from 74740.1ms for the lowest and 140552ms for the highest time required to sort the blocks. To be noted for the highest time, a different process writing to file was occurring during the testing, which might have slowed the algorithm down to a degree, since they were writing onto the same drive, but we don't want to take away the possibility of that not being the case. The amount of MergeJobs, or amount of rounds to merge blocks, was 1504. 1514 if you consider the tasks of cleaning up the data and flushing it, which was also consistent throughout. The time required to merge was ranging from 1.38534e+06ms as the fastest time recorded in our experiment runs and 1.49018e+06ms as the highest. 
+	\item The 100\% file was tested once, due to time constraints.
 \end{itemize}
 
 \section{Discussion and Conclusion}
