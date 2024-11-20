@@ -74,11 +74,12 @@ For the results we tried to run our implementation multiple times, if possible, 
 \begin{itemize}
 	\item The 10\% file size was run six times, with the completion time for the block sorting ranging from 7051.66ms for the lowest required time and 7332.17ms for the longest time. The amount of MergeJobs, or amount of rounds to merge blocks, was 305. 313 if you consider the tasks of cleaning up the data, which was also consistent throughout. The time required to merge all blocks was ranging from 30796.7ms as the least time required to up to 67735.5ms for the most time from our experiments.
 	\item The 50\% file size was run three times. The completion times were ranging from 74740.1ms for the lowest and 140552ms for the highest time required to sort the blocks. To be noted for the highest time, a different process writing to file was occurring during the testing, which might have slowed the algorithm down to a degree, since they were writing onto the same drive, but we don't want to take away the possibility of that not being the case. The amount of MergeJobs, or amount of rounds to merge blocks, was 1504. 1514 if you consider the tasks of cleaning up the data and flushing it, which was also consistent throughout. The time required to merge was ranging from 1.38534e+06ms as the fastest time recorded in our experiment runs and 1.49018e+06ms as the highest. 
-	\item The 100\% file was tested once, due to time constraints.
+	\item The 100\% file was tested once, due to time constraints. The completion time for the block sorting was 170696ms, with the amount of rounds being 3005, with clean jobs included a total amount of 3016. Merging was completed after 3.06425e+06ms.
+	\item The 1,000\% file wasn't tested due to memory storage issues that would occur from running it on the described test machine. Further discussion regarding this will be held in the following section, regarding this file, but the other files as well.
 \end{itemize}
 
 \section{Discussion and Conclusion}
-In this section, the results are discussed and interpreted. Finally, the work is summarized shortly.
+As was seen with the results of the smaller sizes, the algorithm worked well with a fine time. The larger files proved to be problem on the device used for testing, which resulted in quite a long time needed for the merging process. After we completed our test runs 
 
 \section{References}
 The references list the external resources used in the work at hand. \LaTeX$ $  offers special ways to list those resources. In this template the references are stored in the 'refs.bib' file and can be referenced with the '\textbackslash$ $cite\{REF\}' command, where REF is a label defined in the .bib file. This example shows how such a reference looks like: \cite{exa}.
