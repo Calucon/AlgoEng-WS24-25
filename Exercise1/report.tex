@@ -49,14 +49,20 @@ Furthermore, we can distinguish between the number of data blocks in the input f
 External MergeSort functions through the following steps:
 \begin{itemize}
 	\item \textbf{Partitioning:}\\
-	Data entries are put into blocks \textit{B} of a defined size. Of these blocks, \textit{m} blocks are loaded into memory and are initially sorted inside their blocks. This is repeated until all blocks have been considered, sorted and written back to external memory.
+	Data entries are split into blocks of a defined size \textit{B}. Of these blocks, \textit{m} blocks are loaded into memory and are initially sorted inside their blocks. This is repeated until all blocks have been considered, sorted and written back to external memory.
 	\item \textbf{Merging:}\\
 	Two blocks are loaded into internal memory. In addition to these two blocks, one buffer in the size of a block is defined in internal memory. We then work with pointers to their respective data in the buffer and compare them. The smaller value is written into the buffer and the pointer of the block which value was written gets moved one position farther. Once the buffer is full, it is flushed into external memory, so that sorting in the remaining blocks can continue without complications. Once a block to be sorted is cleared, it is removed from internal memory and another block is loaded to be compared and sorted with the remaining block. This process is repeated until all consecutively defined blocks are run through. Then, this whole process is repeated until only one block remains.\\
 	An alternative to this approach is by utilizing the internal memory more effectively is \textit{k}-way Merging, which describes running \textit{k} blocks inside of internal memory at once. \textit{k} is defined as $m-1$, so that we still have place for one buffer and can work on the rest of the block data.
 	
 \end{itemize}
 
-Our implementation follows the same pattern as described. First, we load the file we want to use the algorithm on into blocks and write them to a temporary file. After the sorting is completed, we create MergeJobs in a queue, representing the blocks to be loaded into memory and sorted.
+Our implementation follows the same pattern as described above.
+However, we have made a slight modification to the algorithm by using an additional temporary file. This file is only used to avoid overwriting our input file and re-generating it every time we run the program. It could be easily removed by telling the program to use the original input file instead.\\
+In the first step, we sequentially read blocks of size B, sort them, and lastly write them to the temp file. Once all blocks are individually sorted we create merge jobs using a bottom-up approach. Each job has the following pieces of information: start index within the file of blocks X and Y, number of ints in the block, block/buffer size B, and file paths to the input and output file. If we go up one step in the merging process, we combine two of the merge jobs so that it now handles the resulting bigger data set of the previous two jobs. Also, input and output file paths are swapped whenever we go up one level.\\
+Once we generate all jobs, the result can be seen as a tree. In the first iteration, we start with processing all leaves which are the farthest away from the root. After they've been processed, we remove all of them, swap input and output files, and start again by taking all leaves until we reach the root.\\
+Nodes that are further up the tree have a "number of ints in the block" that is larger than the buffer size B. In this case, we read from both blocks until we reach the end of one of them. Then we continue merging until one of the buffers is empty. Next, we know that the non-empty buffer must be sorted and can flush its remaining content to the file. Lastly, we must make sure that we read until the end of each block. It can be the case that one buffer is empty and the non-empty one has not read until the end of its block yet, thus we must ensure that we do not forget about these numbers.\\
+In the end, after executing the root job, we have to determine whether the result is now in our temporary file or within the output file. If it is in the temp file, we use a syscall to change its file path to one of the output file to avoid copying the whole file. 
+
 
 
 \section{Experimental Evaluation}
@@ -72,19 +78,23 @@ As such, we defined the thresholds to be tested with the defined percentages as 
 \label{sub:Results}
 For the results we tried to run our implementation multiple times, if possible, to assess changes and possible fluctuations of time found for the same data set size.\\
 \begin{itemize}
-	\item The 10\% file size was run six times, with the completion time for the block sorting ranging from 7051.66ms for the lowest required time and 7332.17ms for the longest time. The amount of MergeJobs, or amount of rounds to merge blocks, was 305. 313 if you consider the tasks of cleaning up the data, which was also consistent throughout. The time required to merge all blocks was ranging from 30796.7ms as the least time required to up to 67735.5ms for the most time from our experiments.
-	\item The 50\% file size was run three times. The completion times were ranging from 74740.1ms for the lowest and 140552ms for the highest time required to sort the blocks. To be noted for the highest time, a different process writing to file was occurring during the testing, which might have slowed the algorithm down to a degree, since they were writing onto the same drive, but we don't want to take away the possibility of that not being the case. The amount of MergeJobs, or amount of rounds to merge blocks, was 1504. 1514 if you consider the tasks of cleaning up the data and flushing it, which was also consistent throughout. The time required to merge was ranging from 1.38534e+06ms as the fastest time recorded in our experiment runs and 1.49018e+06ms as the highest. 
+	\item The 10\% file size was run six times, with the completion time for the block sorting ranging from 7051.66ms for the lowest required time and 7332.17ms for the longest time. The amount of MergeJobs, or amount of rounds to merge blocks, was 305. 313 if you consider the tasks of cleaning up the data, which was also consistent throughout. The time required to merge all blocks was ranging from 30796.7ms as the least time required to up to 67735.5ms for the most time from our experiments.\\
+	\includegraphics[scale=0.33]{./graph/Perc10_Block.png}
+	\includegraphics[scale=0.33]{./graph/Perc10_Merge.png}
+	\item The 50\% file size was run three times. The completion times were ranging from 74740.1ms for the lowest and 140552ms for the highest time required to sort the blocks. To be noted for the highest time, a different process writing to file was occurring during the testing, which might have slowed the algorithm down to a degree, since they were writing onto the same drive, but we don't want to take away the possibility of that not being the case. The amount of MergeJobs, or amount of rounds to merge blocks, was 1504. 1514 if you consider the tasks of cleaning up the data and flushing it, which was also consistent throughout. The time required to merge was ranging from 1.38534e+06ms as the fastest time recorded in our experiment runs and 1.49018e+06ms as the highest.\\
+	\includegraphics[scale=0.33]{./graph/Perc50_Block.png}
+	\includegraphics[scale=0.33]{./graph/Perc50_Merge.png}
 	\item The 100\% file was tested once, due to time constraints. The completion time for the block sorting was 170696ms, with the amount of rounds being 3005, with clean jobs included a total amount of 3016. Merging was completed after 3.06425e+06ms.
 	\item The 1,000\% file wasn't tested due to memory storage issues that would occur from running it on the described test machine. Further discussion regarding this will be held in the following section, regarding this file, but the other files as well.
 \end{itemize}
-
+\newpage
 \section{Discussion and Conclusion}
-As was seen with the results of the smaller sizes, the algorithm worked well with a fine time. The larger files proved to be problem on the device used for testing, which resulted in quite a long time needed for the merging process. After we completed our test runs 
+As was seen with the results of the smaller sizes, the algorithm worked well with a fine time. The larger files proved to be problem on the device used for testing, which resulted in quite a long time needed for the merging process. After we completed our test runs on the described device, we tested it on another system, with higher or rather newer hardware and we were able to see a stark difference in performance. As a main example, the 100\% file, which took 3.06425e+06ms to complete the merging process in our previous runs, the other device managed to merge them in 122653ms. This contrast in time required can also be translated to the other data sizes.\\
+Following this, we raise the assumption that this discrepancy is due to I/O operations being limited on the used device and a potential degeneration of hardware also manifesting over time, leading to needing much more time to complete all operations. But also a difference in the CPU used can be a different kind of bottleneck, due to the speed of operations, but also how much it can hold and change its cache.\\
+Due to timing constraints we weren't able to use the new device for testing, but we think it would prove better times for the algorithm as the one we presented here. If possible, these should be seen as the worst-case times, that can occur due to hardware limitations.\\
 
-\section{References}
-The references list the external resources used in the work at hand. \LaTeX$ $  offers special ways to list those resources. In this template the references are stored in the 'refs.bib' file and can be referenced with the '\textbackslash$ $cite\{REF\}' command, where REF is a label defined in the .bib file. This example shows how such a reference looks like: \cite{exa}.
+To conclude this report, while the times recorded were biased in regards to being slowed down due to suspected hardware limitations and degeneration, which were discovered after testing, the algorithm itself works as intended and is expected to perform better than the times presented here on other hardware than the described one above.
 
-\bibliographystyle{abbrvnat}
-\bibliography{refs}
+
 
 \end{document}
