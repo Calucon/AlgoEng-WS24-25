@@ -40,20 +40,16 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, size_t
 {
     // end reached, stop splitting
     if (left >= right)
-    {
-        cout << "\t\tret - l: " << left << " | r: " << right << endl;
         return;
-    }
 
     // acquire lock
     SemaphoreTracker::getInstance()->get(semId)->acquire();
-    // sem->acquire();
 
     // Calculate the midpoint
     int middle = left + ((right - left) / 2);
 
-    // if (MERGE_SORT_DEBUG)
-    cout << "\t\tsplit - l: " << left << " | m: " << middle << " | r: " << right << endl;
+    if (MERGE_SORT_DEBUG)
+        cout << "\t\tsplit - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
     // create semaphores
     binary_semaphore semL{1}, semR{1};
@@ -64,16 +60,17 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, size_t
     split_parallel(in, left, middle, semIdL, pool);
     split_parallel(in, middle + 1, right, semIdR, pool);
 
-    // cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
+    if (MERGE_SORT_DEBUG)
+        cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
+
     const auto func = [semId = semId, semIdL = semIdL, semIdR = semIdR, in = &in, left = left, middle = middle, right = right]
     {
-        // cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
+        if (MERGE_SORT_DEBUG)
+            cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
         // create lock in job scope
         SemaphoreTracker::getInstance()->get(semIdL)->acquire();
         SemaphoreTracker::getInstance()->get(semIdR)->acquire();
-        // semL->acquire();
-        // semR->acquire();
 
         // perform merge
         merge_classic(*in, left, right, middle);
@@ -82,10 +79,9 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, size_t
         SemaphoreTracker::getInstance()->get(semIdL)->release();
         SemaphoreTracker::getInstance()->get(semIdR)->release();
         SemaphoreTracker::getInstance()->get(semId)->release();
-        // semL->release();
-        // semR->release();
-        // sem->release();
-        // cout << "\t\tdbgend - l: " << left << " | m: " << middle << " | r: " << right << endl;
+
+        if (MERGE_SORT_DEBUG)
+            cout << "\t\tdbgend - l: " << left << " | m: " << middle << " | r: " << right << endl;
     };
     // func();
     pool.submit(func);
