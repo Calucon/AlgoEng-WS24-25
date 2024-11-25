@@ -8,7 +8,7 @@
             "name": "ParallelSort (launch)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/ParalellSort.exe",
+            "program": "${workspaceFolder}/bin/ParallelSort.exe",
             "args": ["5", "merge", "mta", "1"],
             "cwd": "${workspaceFolder}"
           },

@@ -7,7 +7,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 project(AlgoEngPKSS)
 
 # add dependencies
-include(cmake/CPM.cmake)
+# include(cmake/CPM.cmake)
 
 # install dependencies
 #CPMAddPackage(
@@ -26,4 +26,4 @@ add_subdirectory(lib/Utils)
 add_subdirectory(src/FileAnalyzer)
 add_subdirectory(src/FileGenerator)
 add_subdirectory(src/EM_MergeSort)
-add_subdirectory(src/ParalellSort)
+add_subdirectory(src/ParallelSort)

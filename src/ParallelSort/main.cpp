@@ -5,7 +5,7 @@ int main(int argc, char *argv[])
     if (argc < 4)
     {
         cout << "Usage:" << endl;
-        cout << "  ./ParalellSort {size} {quick|merge} {sta|mta} <concurrency>" << endl;
+        cout << "  ./ParallelSort {size} {quick|merge} {sta|mta} <concurrency>" << endl;
         cout << "      size         -> numbers to generate" << endl;
         cout << endl;
         cout << "      quick        -> use quicksort" << endl;
