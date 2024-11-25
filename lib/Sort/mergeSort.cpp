@@ -56,24 +56,24 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary
     split_parallel(in, left, middle, &semL, pool);
     split_parallel(in, middle + 1, right, &semR, pool);
 
-    // cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
+    cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
     const auto func = [sem = sem, semL = &semL, semR = &semR, in = &in, left = left, middle = middle, right = right]
     {   
-        //cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
+        cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
         // create lock in job scope
         semL->acquire();
         semR->acquire();
 
         // perform merge
-        merge_classic(*in, left, right, middle);
+        //merge_classic(*in, left, right, middle);
 
         // unlock all
         semL->release();
         semR->release();
         sem->release(); };
-    func();
-    // pool.submit(func);
+    // func();
+    pool.submit(func);
 }
 
 static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy)
