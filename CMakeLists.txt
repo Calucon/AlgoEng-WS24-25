@@ -4,6 +4,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 #set(EXECUTABLE_OUTPUT_PATH "bin")
 
+# add dependencies
+include(cmake/CPM.cmake)
+
 project(AlgoEngPKSS)
 
 # libraries
