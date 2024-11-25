@@ -1,11 +1,71 @@
 #include "mergeSort.h"
 
-void AEPKSS::Sort::merge_sort(vector<uint32_t> &in)
+void AEPKSS::Sort::merge_sort(vector<size_t> &in)
 {
-    split(in, 0, in.size() - 1);
+    split(in, 0, in.size() - 1, MergeStrategy::Classic);
 }
 
-static void split(vector<uint32_t> &in, uint32_t left, uint32_t right)
+void AEPKSS::Sort::merge_sort(vector<size_t> &in, MergeStrategy strategy)
+{
+    if (strategy != MergeStrategy::Parallel)
+    {
+        split(in, 0, in.size() - 1, strategy);
+        return;
+    }
+
+    // create thread pool
+    auto threadPool = AEPKSS::Util::ThreadPool();
+    threadPool.start();
+
+    // perform merge sort
+    mutex mtx;
+    split_parallel(in, 0, in.size() - 1, mtx, threadPool);
+
+    // wait for all locks to be released
+    // then stop the pool
+    {
+        unique_lock lock(mtx);
+        threadPool.stop();
+    }
+}
+
+static void split_parallel(vector<size_t> &in, size_t left, size_t right, mutex &mtx, AEPKSS::Util::ThreadPool &pool)
+{
+    unique_lock lock(mtx);
+
+    // end reached, stop splitting
+    if (left >= right)
+        return;
+
+    // lock here
+    lock.lock();
+
+    // Calculate the midpoint
+    int middle = left + ((right - left) / 2);
+
+    if (MERGE_SORT_DEBUG)
+        cout << "l: " << left << " | m: " << middle << " | r: " << right << endl;
+
+    // create mutexes
+    mutex mtxL, mtxR;
+
+    // Splitting
+    split_parallel(in, left, middle, mtxL, pool);
+    split_parallel(in, middle + 1, right, mtxR, pool);
+
+    pool.submit([&]
+                {
+        // create lock in job scope
+        scoped_lock<mutex, mutex> lockLocal(mtxL, mtxR);
+
+        // perform merge
+        merge_classic(in, left, right, middle);
+
+        // unlock primary lock
+        lock.unlock(); });
+}
+
+static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy)
 {
     // end reached, stop splitting
     if (left >= right)
@@ -18,14 +78,22 @@ static void split(vector<uint32_t> &in, uint32_t left, uint32_t right)
         cout << "l: " << left << " | m: " << middle << " | r: " << right << endl;
 
     // Sort first and second halves
-    split(in, left, middle);
-    split(in, middle + 1, right);
+    split(in, left, middle, strategy);
+    split(in, middle + 1, right, strategy);
 
     // Merge the sorted halves
-    merge(in, left, right, middle);
+    switch (strategy)
+    {
+    case AEPKSS::Sort::MergeStrategy::Classic:
+        merge_classic(in, left, right, middle);
+        break;
+    case AEPKSS::Sort::MergeStrategy::InMemory:
+        merge_in_memory(in, left, right, middle);
+        break;
+    }
 }
 
-static void merge(vector<uint32_t> &in, uint32_t left, uint32_t right, uint32_t middle)
+static void merge_in_memory(vector<size_t> &in, size_t left, size_t right, size_t middle)
 {
     if (MERGE_SORT_DEBUG)
         cout << "\tmerge - l: " << left << " | m: " << middle << " | r: " << right << endl;
@@ -33,8 +101,8 @@ static void merge(vector<uint32_t> &in, uint32_t left, uint32_t right, uint32_t 
     auto pL = left;
     auto pM = middle + 1;
 
-    uint32_t x, y;
-    optional<uint32_t> tmp = nullopt;
+    size_t x, y;
+    optional<size_t> tmp = nullopt;
 
     for (; pL < pM; pL++)
     {
@@ -65,5 +133,61 @@ static void merge(vector<uint32_t> &in, uint32_t left, uint32_t right, uint32_t 
             // assign value
             in[pL] = y;
         }
+    }
+}
+
+static void merge_classic(vector<size_t> &in, size_t left, size_t right, size_t middle)
+{
+    if (MERGE_SORT_DEBUG)
+        cout << "\tmerge - l: " << left << " | m: " << middle << " | r: " << right << endl;
+
+    auto pL = left;
+    auto pM = middle + 1;
+
+    auto sizeLeft = pM - left;
+    auto sizeRight = right - middle;
+
+    queue<size_t> buffLeft, buffRight;
+
+    // populate buffers
+    for (auto i = 0; i < sizeLeft; i++)
+        buffLeft.push(in[left + i]);
+    for (auto i = 0; i < sizeRight; i++)
+        buffRight.push(in[pM + i]);
+
+    size_t blV, brV;
+
+    // merge both buffers into input array
+    while (!buffLeft.empty() && !buffRight.empty())
+    {
+        blV = buffLeft.front();
+        brV = buffRight.front();
+
+        if (blV >= brV)
+        {
+            in[pL] = blV;
+            buffLeft.pop();
+        }
+        else
+        {
+            in[pL] = brV;
+            buffRight.pop();
+        }
+
+        pL++;
+    }
+
+    // empty buffers
+    while (!buffLeft.empty())
+    {
+        in[pL] = buffLeft.front();
+        buffLeft.pop();
+        pL++;
+    }
+    while (!buffRight.empty())
+    {
+        in[pL] = buffRight.front();
+        buffRight.pop();
+        pL++;
     }
 }

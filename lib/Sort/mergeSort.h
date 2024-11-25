@@ -2,8 +2,12 @@
 #include <algorithm>
 #include <vector>
 #include <optional>
+#include <queue>
+#include <map>
 
 #include <iostream>
+
+#include "../Utils/threadPool.h"
 
 using namespace std;
 
@@ -13,8 +17,22 @@ using namespace std;
 
 namespace AEPKSS::Sort
 {
-    void merge_sort(vector<uint32_t> &in);
+    enum MergeStrategy
+    {
+        Classic,
+        InMemory,
+        Parallel
+    };
+
+    /**
+     * This defaults to using `MergeStrategy::Classic`
+     */
+    void merge_sort(vector<size_t> &in);
+    void merge_sort(vector<size_t> &in, MergeStrategy strategy);
 }
 
-static void merge(vector<uint32_t> &in, uint32_t left, uint32_t right, uint32_t middle);
-static void split(vector<uint32_t> &in, uint32_t left, uint32_t right);
+static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy);
+static void split_parallel(vector<size_t> &in, size_t left, size_t right, mutex &mtx, AEPKSS::Util::ThreadPool &pool);
+
+static void merge_in_memory(vector<size_t> &in, size_t left, size_t right, size_t middle);
+static void merge_classic(vector<size_t> &in, size_t left, size_t right, size_t middle);
