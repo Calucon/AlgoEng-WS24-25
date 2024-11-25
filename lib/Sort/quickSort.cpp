@@ -1,11 +1,11 @@
 #include "quickSort.h"
 
-void AEPKSS::Sort::quick_sort(vector<uint32_t> &in)
+void AEPKSS::Sort::quick_sort(vector<size_t> &in)
 {
     sort(in, 0, in.size() - 1);
 }
 
-static void sort(vector<uint32_t> &in, int32_t left, int32_t right)
+static void sort(vector<size_t> &in, size_t left, size_t right)
 {
     if (left >= right)
         return;
@@ -15,11 +15,11 @@ static void sort(vector<uint32_t> &in, int32_t left, int32_t right)
     sort(in, pIndex + 1, right);
 }
 
-static uint32_t partition(vector<uint32_t> &in, int32_t left, int32_t right)
+static size_t partition(vector<size_t> &in, size_t left, size_t right)
 {
     auto pivot = in[right];
     auto swapIndex = left - 1;
-    uint32_t tmp;
+    size_t tmp;
 
     for (auto i = left; i < right; i++)
     {
