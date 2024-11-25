@@ -18,51 +18,56 @@ void AEPKSS::Sort::merge_sort(vector<size_t> &in, MergeStrategy strategy)
     threadPool.start();
 
     // perform merge sort
-    mutex mtx;
-    split_parallel(in, 0, in.size() - 1, mtx, threadPool);
+    binary_semaphore sem{0};
+    sem.release();
+    split_parallel(in, 0, in.size() - 1, sem, threadPool);
 
     // wait for all locks to be released
     // then stop the pool
-    {
-        unique_lock lock(mtx);
-        threadPool.stop();
-    }
+    sem.acquire();
+    threadPool.stop();
+    sem.release();
 }
 
-static void split_parallel(vector<size_t> &in, size_t left, size_t right, mutex &mtx, AEPKSS::Util::ThreadPool &pool)
+static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool)
 {
-    unique_lock lock(mtx);
-
     // end reached, stop splitting
     if (left >= right)
         return;
 
-    // lock here
-    lock.lock();
+    // acquire lock
+    sem.acquire();
 
     // Calculate the midpoint
     int middle = left + ((right - left) / 2);
 
     if (MERGE_SORT_DEBUG)
-        cout << "l: " << left << " | m: " << middle << " | r: " << right << endl;
+        cout << "\t\tsplit - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
-    // create mutexes
-    mutex mtxL, mtxR;
+    // create semaphores
+    binary_semaphore semL{0}, semR{0};
+    semL.release();
+    semR.release();
 
     // Splitting
-    split_parallel(in, left, middle, mtxL, pool);
-    split_parallel(in, middle + 1, right, mtxR, pool);
+    split_parallel(in, left, middle, semL, pool);
+    split_parallel(in, middle + 1, right, semR, pool);
 
-    pool.submit([&]
-                {
+    const auto func = [&]
+    {
         // create lock in job scope
-        scoped_lock<mutex, mutex> lockLocal(mtxL, mtxR);
+        semL.acquire();
+        semR.acquire();
 
         // perform merge
         merge_classic(in, left, right, middle);
 
-        // unlock primary lock
-        lock.unlock(); });
+        // unlock all
+        semL.release();
+        semR.release();
+        sem.release(); };
+    func();
+    // pool.submit(func);
 }
 
 static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy)
@@ -75,7 +80,7 @@ static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::M
     int middle = left + ((right - left) / 2);
 
     if (MERGE_SORT_DEBUG)
-        cout << "l: " << left << " | m: " << middle << " | r: " << right << endl;
+        cout << "\t\tsplit - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
     // Sort first and second halves
     split(in, left, middle, strategy);
@@ -139,7 +144,7 @@ static void merge_in_memory(vector<size_t> &in, size_t left, size_t right, size_
 static void merge_classic(vector<size_t> &in, size_t left, size_t right, size_t middle)
 {
     if (MERGE_SORT_DEBUG)
-        cout << "\tmerge - l: " << left << " | m: " << middle << " | r: " << right << endl;
+        cout << "\t\tmerge - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
     auto pL = left;
     auto pM = middle + 1;
@@ -163,7 +168,7 @@ static void merge_classic(vector<size_t> &in, size_t left, size_t right, size_t 
         blV = buffLeft.front();
         brV = buffRight.front();
 
-        if (blV >= brV)
+        if (blV <= brV)
         {
             in[pL] = blV;
             buffLeft.pop();
