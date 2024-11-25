@@ -21,7 +21,9 @@ void AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
 
     // perform merge sort
     binary_semaphore sem{1};
-    split_parallel(in, 0, in.size() - 1, &sem, threadPool);
+    size_t semId = SemaphoreTracker::getInstance()->track(&sem);
+
+    split_parallel(in, 0, in.size() - 1, semId, threadPool);
     threadPool.start();
 
     // create background task to observe progress
@@ -34,7 +36,7 @@ void AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
     poolObserver.join();
 }
 
-static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary_semaphore *sem, AEPKSS::Util::ThreadPool &pool)
+static void split_parallel(vector<size_t> &in, size_t left, size_t right, size_t semId, AEPKSS::Util::ThreadPool &pool)
 {
     // end reached, stop splitting
     if (left >= right)
@@ -44,7 +46,8 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary
     }
 
     // acquire lock
-    sem->acquire();
+    SemaphoreTracker::getInstance()->get(semId)->acquire();
+    // sem->acquire();
 
     // Calculate the midpoint
     int middle = left + ((right - left) / 2);
@@ -54,28 +57,35 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary
 
     // create semaphores
     binary_semaphore semL{1}, semR{1};
+    size_t semIdL = SemaphoreTracker::getInstance()->track(&semL);
+    size_t semIdR = SemaphoreTracker::getInstance()->track(&semR);
 
     // Splitting
-    split_parallel(in, left, middle, &semL, pool);
-    split_parallel(in, middle + 1, right, &semR, pool);
+    split_parallel(in, left, middle, semIdL, pool);
+    split_parallel(in, middle + 1, right, semIdR, pool);
 
-    cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
-    const auto func = [sem = sem, semL = &semL, semR = &semR, in = &in, left = left, middle = middle, right = right]
+    // cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
+    const auto func = [semId = semId, semIdL = semIdL, semIdR = semIdR, in = &in, left = left, middle = middle, right = right]
     {
-        cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
+        // cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
         // create lock in job scope
-        semL->acquire();
-        semR->acquire();
+        SemaphoreTracker::getInstance()->get(semIdL)->acquire();
+        SemaphoreTracker::getInstance()->get(semIdR)->acquire();
+        // semL->acquire();
+        // semR->acquire();
 
         // perform merge
         merge_classic(*in, left, right, middle);
 
         // unlock all
-        semL->release();
-        semR->release();
-        sem->release();
-        cout << "\t\tdbgend - l: " << left << " | m: " << middle << " | r: " << right << endl;
+        SemaphoreTracker::getInstance()->get(semIdL)->release();
+        SemaphoreTracker::getInstance()->get(semIdR)->release();
+        SemaphoreTracker::getInstance()->get(semId)->release();
+        // semL->release();
+        // semR->release();
+        // sem->release();
+        // cout << "\t\tdbgend - l: " << left << " | m: " << middle << " | r: " << right << endl;
     };
     // func();
     pool.submit(func);

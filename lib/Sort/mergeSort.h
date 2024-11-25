@@ -8,9 +8,11 @@
 #include <iostream>
 
 #include "../Utils/threadPool.h"
+#include "../Utils/semaphoreTracker.h"
 #include <semaphore>
 
 using namespace std;
+using namespace AEPKSS::Util;
 
 #ifndef MERGE_SORT_DEBUG
 #define MERGE_SORT_DEBUG false
@@ -34,7 +36,7 @@ namespace AEPKSS::Sort
 }
 
 static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy);
-static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary_semaphore *sem, AEPKSS::Util::ThreadPool &pool);
+static void split_parallel(vector<size_t> &in, size_t left, size_t right, size_t semId, AEPKSS::Util::ThreadPool &pool);
 
 static void merge_in_memory(vector<size_t> &in, size_t left, size_t right, size_t middle);
 static void merge_classic(vector<size_t> &in, size_t left, size_t right, size_t middle);

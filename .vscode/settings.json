@@ -87,7 +87,12 @@
         "resumable": "cpp",
         "ranges": "cpp",
         "stop_token": "cpp",
-        "semaphore": "cpp"
+        "semaphore": "cpp",
+        "map": "cpp",
+        "xtree": "cpp",
+        "set": "cpp",
+        "text_encoding": "cpp",
+        "variant": "cpp"
     },
     "editor.formatOnSave": true,
     "C_Cpp.default.cppStandard": "c++23",
