@@ -18,6 +18,7 @@ void AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
 
     // create thread pool
     auto threadPool = AEPKSS::Util::ThreadPool(concurrency);
+    threadPool.start();
 
     // perform merge sort
     binary_semaphore sem{1};
@@ -27,7 +28,6 @@ void AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
     // as main thread can not aquire semaphores
     auto poolObserver = thread([pool = &threadPool, sem = &sem]
                                {
-        pool->start();
         sem->acquire();
         pool->stop();
         sem->release(); });
