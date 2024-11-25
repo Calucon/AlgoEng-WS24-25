@@ -13,7 +13,7 @@
 using namespace std;
 
 #ifndef MERGE_SORT_DEBUG
-#define MERGE_SORT_DEBUG true
+#define MERGE_SORT_DEBUG false
 #endif
 
 namespace AEPKSS::Sort
