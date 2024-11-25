@@ -2,52 +2,79 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3)
+    if (argc < 4)
     {
         cout << "Usage:" << endl;
-        cout << "  ./ParalellSort {size} {quick|merge}" << endl;
-        cout << "      size    -> numbers to generate" << endl;
-        cout << "      quick   -> use quicksort" << endl;
-        cout << "      merge   -> use mergesort" << endl;
+        cout << "  ./ParalellSort {size} {quick|merge} {sta|mta} <concurrency>" << endl;
+        cout << "      size         -> numbers to generate" << endl;
+        cout << endl;
+        cout << "      quick        -> use quicksort" << endl;
+        cout << "      merge        -> use mergesort" << endl;
+        cout << endl;
+        cout << "      sta          -> Single Threaded" << endl;
+        cout << "      mta          -> Multi Threaded" << endl;
+        cout << endl;
+        cout << "      concurrency  -> number of threads to use" << endl;
         return EXIT_FAILURE;
     }
 
     char *strEnd; // just used for long parsing
-    const auto size = max(1L, strtol(argv[1], &strEnd, 10));
-    const auto algo = string(argv[2]);
+    const auto SIZE = max(1L, stol(string(argv[1])));
+    const auto ALGO = string(argv[2]);
+    const auto TYPE = string(argv[3]);
+    const auto CONCURRENCY = argc >= 5 ? max(1L, stol(string(argv[4]))) : thread::hardware_concurrency();
 
-    cout << "ParalellSort | Algo: " << algo << ", Size: " << size << endl;
+    if (ALGO != "quick" && ALGO != "merge")
+    {
+        cerr << "Invalid Algorithm! {quick|merge}" << endl;
+        return EXIT_FAILURE;
+    }
+
+    if (TYPE != "mta" && TYPE != "sta")
+    {
+        cerr << "Invalid Threading Type! {sta|mta}" << endl;
+        return EXIT_FAILURE;
+    }
+
+    cout << "ParalellSort | Algo: " << ALGO << ", Size: " << SIZE << ", Type: " << TYPE << ", Concurrency: " << CONCURRENCY << endl;
 
     time_point t1 = chrono::high_resolution_clock::now();
-    auto numGenSpeedTest = AEPKSS::Util::NumberGenerator(100UL);
-    for (auto i = 0; i < size; i++)
-        numGenSpeedTest.next();
-    time_point t2 = chrono::high_resolution_clock::now();
-
-    auto numGen = AEPKSS::Util::NumberGenerator(100UL);
-    set<uint64_t> s;
-    size_t prevSetSize = s.size();
-
-    for (auto i = 0; i < size; i++)
+    auto numGen = AEPKSS::Util::NumberGenerator(PARALELL_SORT_SEED);
+    auto inputData = vector<size_t>(SIZE);
+    for (auto x = 0; x < SIZE; x++)
     {
-        auto x = numGen.next();
-        s.insert(x);
+        inputData[x] = numGen.next();
+    }
+    time_point t2 = chrono::high_resolution_clock::now();
+    cout << "\tData generation took " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
 
-        if (prevSetSize == s.size())
+    if (ALGO == "merge")
+    {
+        if (TYPE == "mta")
+            AEPKSS::Sort::merge_sort(inputData, AEPKSS::Sort::Parallel);
+        else
+            AEPKSS::Sort::merge_sort(inputData, AEPKSS::Sort::Classic);
+    }
+    else
+    {
+        if (TYPE == "mta")
         {
-            cout << "ERR: non-distinct number" << endl;
+            cerr << "Quick Sort not supported (yet)!" << endl;
             return EXIT_FAILURE;
         }
         else
-            prevSetSize = s.size();
-
-        if (i % 100000 == 0)
-            cout << "\tProgress: " << ((double)i / size * 100.0) << "%" << endl;
+            AEPKSS::Sort::quick_sort(inputData);
     }
 
-    cout << "Speed Test: " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
-    cout << "Unique Test: passed!" << endl;
+    time_point t3 = chrono::high_resolution_clock::now();
+    cout << "\tSorting took " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
+
+    bool isSorted = is_sorted(inputData.cbegin(), inputData.cend());
+    time_point t4 = chrono::high_resolution_clock::now();
+    cout << "\tValidation took " << ((chrono::duration<double, std::milli>)(t4 - t3)).count() << "ms" << endl;
+
     cout << endl;
-    cout << "All done!     -      clean up may take some time" << endl;
+    cout << "All done!     -      Data is" << (isSorted ? "" : " NOT") << " SORTED!" << endl;
+    cout << "              -      Total execution time: " << ((chrono::duration<double, std::milli>)(t4 - t1)).count() << "ms" << endl;
     return EXIT_SUCCESS;
 }
