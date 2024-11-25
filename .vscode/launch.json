@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "ParllelSort (launch)",
+            "name": "ParallelSort (launch)",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/ParalellSort.exe",
-            "args": ["100", "merge", "mta", "1"],
+            "args": ["5", "merge", "mta", "1"],
             "cwd": "${workspaceFolder}"
           },
     ]
