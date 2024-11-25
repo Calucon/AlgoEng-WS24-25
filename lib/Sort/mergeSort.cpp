@@ -14,7 +14,7 @@ void AEPKSS::Sort::merge_sort(vector<size_t> &in, MergeStrategy strategy)
     }
 
     // create thread pool
-    auto threadPool = AEPKSS::Util::ThreadPool();
+    auto threadPool = AEPKSS::Util::ThreadPool(1);
     threadPool.start();
 
     // perform merge sort
@@ -54,20 +54,22 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary
     split_parallel(in, middle + 1, right, semR, pool);
 
     const auto func = [&]
-    {
-        // create lock in job scope
+    {   
+        cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
+
+        // create lock in job scope/
         semL.acquire();
         semR.acquire();
 
         // perform merge
-        merge_classic(in, left, right, middle);
+        //merge_classic(in, left, right, middle);
 
         // unlock all
         semL.release();
         semR.release();
         sem.release(); };
-    func();
-    // pool.submit(func);
+    // func();
+    pool.submit(func);
 }
 
 static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy)

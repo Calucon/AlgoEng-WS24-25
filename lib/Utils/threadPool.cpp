@@ -52,7 +52,7 @@ void AEPKSS::Util::ThreadPool::loop()
                 return;
 
             // accquire next job
-            auto job = this->jobs.front();
+            job = this->jobs.front();
             this->jobs.pop();
 
             // unlock and execute job
