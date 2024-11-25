@@ -21,27 +21,32 @@ void AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
     threadPool.start();
 
     // perform merge sort
-    binary_semaphore sem{1};
+    /// binary_semaphore sem{1};
+    atomic_bool sem = false;
     split_parallel(in, 0, in.size() - 1, &sem, threadPool);
 
     // create background task to observe progress
     // as main thread can not aquire semaphores
     auto poolObserver = thread([pool = &threadPool, sem = &sem]
                                {
-        sem->acquire();
-        pool->stop();
-        sem->release(); });
+                                   while (sem->load())
+                                       this_thread::yield();
+                                   // sem->acquire();
+                                   pool->stop();
+                                   // sem->release();
+                               });
     poolObserver.join();
 }
 
-static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary_semaphore *sem, AEPKSS::Util::ThreadPool &pool)
+static void split_parallel(vector<size_t> &in, size_t left, size_t right, atomic_bool *sem, AEPKSS::Util::ThreadPool &pool)
 {
     // end reached, stop splitting
     if (left >= right)
         return;
 
     // acquire lock
-    sem->acquire();
+    // sem->acquire();
+    sem->store(true);
 
     // Calculate the midpoint
     int middle = left + ((right - left) / 2);
@@ -50,28 +55,32 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary
         cout << "\t\tsplit - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
     // create semaphores
-    binary_semaphore semL{1}, semR{1};
+    // binary_semaphore semL{1}, semR{1};
+    atomic_bool semL = false, semR = false;
 
     // Splitting
     split_parallel(in, left, middle, &semL, pool);
     split_parallel(in, middle + 1, right, &semR, pool);
 
-    cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
+    // cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
     const auto func = [sem = sem, semL = &semL, semR = &semR, in = &in, left = left, middle = middle, right = right]
     {   
-        cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
+        //cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
         // create lock in job scope
-        semL->acquire();
-        semR->acquire();
+        while(semL->load()) this_thread::yield();
+        while(semR->load()) this_thread::yield();
+        //semL->acquire();
+        //semR->acquire();
 
         // perform merge
-        //merge_classic(*in, left, right, middle);
+        merge_classic(*in, left, right, middle);
 
         // unlock all
-        semL->release();
-        semR->release();
-        sem->release(); };
+        //semL->release();
+        //semR->release();
+        //sem->release(); 
+        sem->store(false); };
     // func();
     pool.submit(func);
 }
