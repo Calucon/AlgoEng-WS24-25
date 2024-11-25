@@ -18,11 +18,11 @@ void AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
 
     // create thread pool
     auto threadPool = AEPKSS::Util::ThreadPool(concurrency);
-    threadPool.start();
 
     // perform merge sort
     binary_semaphore sem{1};
     split_parallel(in, 0, in.size() - 1, &sem, threadPool);
+    threadPool.start();
 
     // create background task to observe progress
     // as main thread can not aquire semaphores
@@ -38,7 +38,10 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary
 {
     // end reached, stop splitting
     if (left >= right)
+    {
+        cout << "\t\tret - l: " << left << " | r: " << right << endl;
         return;
+    }
 
     // acquire lock
     sem->acquire();
@@ -46,8 +49,8 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary
     // Calculate the midpoint
     int middle = left + ((right - left) / 2);
 
-    if (MERGE_SORT_DEBUG)
-        cout << "\t\tsplit - l: " << left << " | m: " << middle << " | r: " << right << endl;
+    // if (MERGE_SORT_DEBUG)
+    cout << "\t\tsplit - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
     // create semaphores
     binary_semaphore semL{1}, semR{1};
@@ -56,10 +59,10 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary
     split_parallel(in, left, middle, &semL, pool);
     split_parallel(in, middle + 1, right, &semR, pool);
 
-    // cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
+    cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
     const auto func = [sem = sem, semL = &semL, semR = &semR, in = &in, left = left, middle = middle, right = right]
-    {   
-        //cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
+    {
+        cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
         // create lock in job scope
         semL->acquire();
@@ -71,9 +74,11 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary
         // unlock all
         semL->release();
         semR->release();
-        sem->release(); };
-    func();
-    // pool.submit(func);
+        sem->release();
+        cout << "\t\tdbgend - l: " << left << " | m: " << middle << " | r: " << right << endl;
+    };
+    // func();
+    pool.submit(func);
 }
 
 static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy)
