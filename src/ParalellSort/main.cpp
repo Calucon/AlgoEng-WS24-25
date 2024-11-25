@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     if (ALGO == "merge")
     {
         if (TYPE == "mta")
-            AEPKSS::Sort::merge_sort(inputData, AEPKSS::Sort::Parallel);
+            AEPKSS::Sort::merge_sort_parallel(inputData, CONCURRENCY);
         else
             AEPKSS::Sort::merge_sort(inputData, AEPKSS::Sort::Classic);
     }

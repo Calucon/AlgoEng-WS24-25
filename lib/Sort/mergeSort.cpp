@@ -8,35 +8,40 @@ void AEPKSS::Sort::merge_sort(vector<size_t> &in)
 void AEPKSS::Sort::merge_sort(vector<size_t> &in, MergeStrategy strategy)
 {
     if (strategy != MergeStrategy::Parallel)
-    {
         split(in, 0, in.size() - 1, strategy);
-        return;
-    }
-
-    // create thread pool
-    auto threadPool = AEPKSS::Util::ThreadPool(1);
-
-    // perform merge sort
-    binary_semaphore sem{0};
-    sem.release();
-    split_parallel(in, 0, in.size() - 1, sem, threadPool);
-    threadPool.start();
-
-    // wait for all locks to be released
-    // then stop the pool
-    sem.acquire();
-    threadPool.stop();
-    sem.release();
+    else
+        merge_sort_parallel(in, thread::hardware_concurrency());
 }
 
-static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool)
+void AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
+{
+
+    // create thread pool
+    auto threadPool = AEPKSS::Util::ThreadPool(concurrency);
+
+    // perform merge sort
+    binary_semaphore sem{1};
+    split_parallel(in, 0, in.size() - 1, &sem, threadPool);
+
+    // create background task to observe progress
+    // as main thread can not aquire semaphores
+    auto poolObserver = thread([pool = &threadPool, sem = &sem]
+                               {
+        pool->start();
+        sem->acquire();
+        pool->stop();
+        sem->release(); });
+    poolObserver.join();
+}
+
+static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary_semaphore *sem, AEPKSS::Util::ThreadPool &pool)
 {
     // end reached, stop splitting
     if (left >= right)
         return;
 
     // acquire lock
-    sem.acquire();
+    sem->acquire();
 
     // Calculate the midpoint
     int middle = left + ((right - left) / 2);
@@ -45,32 +50,30 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, binary
         cout << "\t\tsplit - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
     // create semaphores
-    binary_semaphore semL{0}, semR{0};
-    semL.release();
-    semR.release();
+    binary_semaphore semL{1}, semR{1};
 
     // Splitting
-    split_parallel(in, left, middle, semL, pool);
-    split_parallel(in, middle + 1, right, semR, pool);
+    split_parallel(in, left, middle, &semL, pool);
+    split_parallel(in, middle + 1, right, &semR, pool);
 
-    cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
-    const auto func = [&sem = sem, &semL = semL, &semR = semR, &in = in, left = left, middle = middle, right = right]
+    // cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
+    const auto func = [sem = sem, semL = &semL, semR = &semR, in = &in, left = left, middle = middle, right = right]
     {   
-        cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
+        //cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
 
         // create lock in job scope
-        semL.acquire();
-        semR.acquire();
+        semL->acquire();
+        semR->acquire();
 
         // perform merge
-        //merge_classic(in, left, right, middle);
+        merge_classic(*in, left, right, middle);
 
         // unlock all
-        semL.release();
-        semR.release();
-        sem.release(); };
-    // func();
-    pool.submit(func);
+        semL->release();
+        semR->release();
+        sem->release(); };
+    func();
+    // pool.submit(func);
 }
 
 static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy)

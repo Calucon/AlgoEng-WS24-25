@@ -86,7 +86,8 @@
         "coroutine": "cpp",
         "resumable": "cpp",
         "ranges": "cpp",
-        "stop_token": "cpp"
+        "stop_token": "cpp",
+        "semaphore": "cpp"
     },
     "editor.formatOnSave": true,
     "C_Cpp.default.cppStandard": "c++23",
