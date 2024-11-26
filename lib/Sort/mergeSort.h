@@ -32,10 +32,20 @@ namespace AEPKSS::Sort
         Parallel
     };
 
+    struct ParallelMergeData
+    {
+        pair<binary_semaphore *, vector<size_t> *> *left = nullptr;
+        pair<binary_semaphore *, vector<size_t> *> *right = nullptr;
+
+        binary_semaphore *outLock{0};
+        vector<size_t> *output;
+    };
+
     /**
      * This defaults to using `MergeStrategy::Classic`
      */
-    void merge_sort(vector<size_t> &in);
+    void
+    merge_sort(vector<size_t> &in);
     void merge_sort(vector<size_t> &in, MergeStrategy strategy);
     size_t merge_sort_parallel(vector<size_t> &in, size_t concurrency);
 }
@@ -50,6 +60,7 @@ static void merge_classic(vector<size_t> &in, size_t left, size_t right, size_t 
 static vector<size_t> merge_parallel(vector<size_t> &left, vector<size_t> &right);
 
 static void split_parallel_v3_helper(vector<size_t> &in, binary_semaphore &sem);
+static void split_parallel_v3_merger(AEPKSS::Sort::ParallelMergeData *data);
 
 static mutex mergeMtx;
 static mutex cacheMtx;

@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/ParallelSort.exe",
-            "args": ["10", "merge", "mta", "1"],
+            "args": ["10", "merge", "mta", "2"],
             "cwd": "${workspaceFolder}"
           },
     ]

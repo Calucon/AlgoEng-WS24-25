@@ -35,7 +35,7 @@ size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
     return threadPool.jobsProcessed;
 }
 
-static binary_semaphore *split_parallel_v3(vector<size_t> &in, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool)
+static binary_semaphore *split_parallel_v3(vector<size_t> &in, binary_semaphore &semX, AEPKSS::Util::ThreadPool &pool)
 {
     size_t n = in.size();
     size_t blockSize = n / pool.concurrency;
@@ -43,11 +43,13 @@ static binary_semaphore *split_parallel_v3(vector<size_t> &in, binary_semaphore 
     if (n < pool.concurrency || blockSize < 1)
     {
         split(in, 0, in.size() - 1, AEPKSS::Sort::MergeStrategy::Classic);
-        sem.release();
-        return &sem;
+        semX.release();
+        return &semX;
     }
 
-    vector<pair<binary_semaphore *, vector<size_t> *>> cache;
+    map<size_t, vector<AEPKSS::Sort::ParallelMergeData>> cache;
+    size_t cacheLevel = 0;
+    auto populationData = AEPKSS::Sort::ParallelMergeData();
 
     for (auto i = 0; i < pool.concurrency; i++)
     {
@@ -58,31 +60,56 @@ static binary_semaphore *split_parallel_v3(vector<size_t> &in, binary_semaphore 
         vector<size_t> out;
         binary_semaphore sem{0};
 
+        // create buckets
         if (i + 1 == pool.concurrency)
             bucket = vector<size_t>(in.begin() + start, in.end());
         else
             bucket = vector<size_t>(in.begin() + start, in.begin() + end);
 
-        const auto func = std::bind(split_parallel_v3_helper, ref(bucket), ref(sem));
+        const auto func = bind(split_parallel_v3_helper, ref(bucket), ref(sem));
         pool.submit(func);
 
+        // create tasks
         pair<binary_semaphore *, vector<size_t> *> cachePair = {&sem, &bucket};
-        cache.emplace_back(cachePair);
+        if (populationData.left == nullptr)
+            populationData.left = &cachePair;
+        else
+        {
+            populationData.right = &cachePair;
+            cache[cacheLevel].emplace_back(populationData);
+            populationData = AEPKSS::Sort::ParallelMergeData();
+        }
 
-        sem.acquire();
-        cout << "S: " << bucket.size() << " | s: " << is_sorted(bucket.cbegin(), bucket.cend()) << endl;
+        // sem.acquire();
+        // cout << "S: " << bucket.size() << " | s: " << is_sorted(bucket.cbegin(), bucket.cend()) << endl;
     }
 
-    // TODO: we now have our buckets, next we need to merge them together
+    // on uneven processor count
+    if (populationData.left != nullptr)
+        cache[cacheLevel].emplace_back(populationData);
 
-    sem.release();
-    return &sem;
+    while (cache[cacheLevel].size() > 1)
+    {
+        auto oldLevel = cacheLevel;
+        cacheLevel++;
+
+        for (auto x : cache[oldLevel])
+        {
+        }
+    }
+
+    semX.release();
+    return &semX;
 }
 
 static void split_parallel_v3_helper(vector<size_t> &in, binary_semaphore &sem)
 {
     split(in, 0, in.size() - 1, AEPKSS::Sort::MergeStrategy::Classic);
     sem.release();
+}
+
+static void split_parallel_v3_merger(AEPKSS::Sort::ParallelMergeData *data)
+{
 }
 
 static binary_semaphore *split_parallel_v2(vector<size_t> &in, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool)
