@@ -43,7 +43,7 @@ size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
         else
             bucket = vector<size_t>(in.begin() + start, in.begin() + end);
 
-        const auto func = bind(parallell_merge_per_core, bucket);
+        const auto func = bind(parallell_merge_per_core, ref(bucket));
         shared_future<vector<size_t>> future = async(launch::async, func);
 
         intermediateCache.emplace_back(future);
@@ -62,7 +62,7 @@ size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
             if ((i + 1) < j)
                 right = tmpCache[i + 1];
 
-            const auto func = bind(parallell_merge_block, left, right);
+            const auto func = bind(parallell_merge_block, ref(left), ref(right));
             shared_future<vector<size_t>> future = async(launch::async, func);
             intermediateCache.emplace_back(future);
         }
