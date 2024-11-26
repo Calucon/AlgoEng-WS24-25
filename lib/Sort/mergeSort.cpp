@@ -28,6 +28,7 @@ size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
     vector<shared_future<vector<size_t>>> cache;
     vector<shared_future<vector<size_t>>> intermediateCache;
 
+    // create job for each processor
     for (auto i = 0; i < concurrency; i++)
     {
         auto start = i * blockSize;
