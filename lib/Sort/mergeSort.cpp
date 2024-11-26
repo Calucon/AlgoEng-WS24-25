@@ -22,7 +22,7 @@ size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
 
     // perform merge sort
     binary_semaphore sem{0};
-    split_parallel_v2(in, sem, threadPool);
+    split_parallel_v3(in, sem, threadPool);
 
     // create background task to observe progress
     // as main thread can not aquire semaphores
@@ -33,6 +33,56 @@ size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
     poolObserver.join();
 
     return threadPool.jobsProcessed;
+}
+
+static binary_semaphore *split_parallel_v3(vector<size_t> &in, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool)
+{
+    size_t n = in.size();
+    size_t blockSize = n / pool.concurrency;
+
+    if (n < pool.concurrency || blockSize < 1)
+    {
+        split(in, 0, in.size() - 1, AEPKSS::Sort::MergeStrategy::Classic);
+        sem.release();
+        return &sem;
+    }
+
+    vector<pair<binary_semaphore *, vector<size_t> *>> cache;
+
+    for (auto i = 0; i < pool.concurrency; i++)
+    {
+        auto start = i * blockSize;
+        auto end = start + blockSize;
+
+        vector<size_t> bucket;
+        vector<size_t> out;
+        binary_semaphore sem{0};
+
+        if (i + 1 == pool.concurrency)
+            bucket = vector<size_t>(in.begin() + start, in.end());
+        else
+            bucket = vector<size_t>(in.begin() + start, in.begin() + end);
+
+        const auto func = std::bind(split_parallel_v3_helper, ref(bucket), ref(sem));
+        pool.submit(func);
+
+        pair<binary_semaphore *, vector<size_t> *> cachePair = {&sem, &bucket};
+        cache.emplace_back(cachePair);
+
+        sem.acquire();
+        cout << "S: " << bucket.size() << " | s: " << is_sorted(bucket.cbegin(), bucket.cend()) << endl;
+    }
+
+    // TODO: we now have our buckets, next we need to merge them together
+
+    sem.release();
+    return &sem;
+}
+
+static void split_parallel_v3_helper(vector<size_t> &in, binary_semaphore &sem)
+{
+    split(in, 0, in.size() - 1, AEPKSS::Sort::MergeStrategy::Classic);
+    sem.release();
 }
 
 static binary_semaphore *split_parallel_v2(vector<size_t> &in, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool)
@@ -130,7 +180,7 @@ static void split_parallel(vector<size_t> &in, size_t left, size_t right, size_t
 static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy)
 {
     // end reached, stop splitting
-    if (left >= right)
+    if (in.size() <= 1 || left >= right)
         return;
 
     // Calculate the midpoint

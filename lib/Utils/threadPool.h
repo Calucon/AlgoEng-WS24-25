@@ -18,7 +18,6 @@ namespace AEPKSS::Util
     class ThreadPool
     {
     private:
-        size_t concurrency;
         bool should_terminate = false;      // Tells threads to stop looking for jobs
         mutex queue_mutex;                  // Prevents data races to the job queue
         condition_variable mutex_condition; // Allows threads to wait on new jobs or termination
@@ -28,6 +27,7 @@ namespace AEPKSS::Util
         void loop();
 
     public:
+        size_t concurrency;
         size_t jobsProcessed = 0;
 
         ThreadPool();

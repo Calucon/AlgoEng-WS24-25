@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <vector>
+#include <functional>
 #include <optional>
 #include <queue>
 #include <map>
@@ -42,9 +43,13 @@ namespace AEPKSS::Sort
 static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy);
 static void split_parallel(vector<size_t> &in, size_t left, size_t right, size_t semId, AEPKSS::Util::ThreadPool &pool);
 static binary_semaphore *split_parallel_v2(vector<size_t> &in, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool);
+static binary_semaphore *split_parallel_v3(vector<size_t> &in, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool);
 
 static void merge_in_memory(vector<size_t> &in, size_t left, size_t right, size_t middle);
 static void merge_classic(vector<size_t> &in, size_t left, size_t right, size_t middle);
 static vector<size_t> merge_parallel(vector<size_t> &left, vector<size_t> &right);
 
+static void split_parallel_v3_helper(vector<size_t> &in, binary_semaphore &sem);
+
 static mutex mergeMtx;
+static mutex cacheMtx;
