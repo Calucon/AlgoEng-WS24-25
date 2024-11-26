@@ -13,7 +13,7 @@ void AEPKSS::Sort::merge_sort(vector<size_t> &in, MergeStrategy strategy)
         merge_sort_parallel(in, thread::hardware_concurrency());
 }
 
-void AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
+size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
 {
 
     // create thread pool
@@ -31,6 +31,8 @@ void AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
         while(threadPool.isBusy()) this_thread::yield();
         threadPool.stop(); });
     poolObserver.join();
+
+    return threadPool.jobsProcessed;
 }
 
 static binary_semaphore *split_parallel_v2(vector<size_t> &in, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool)

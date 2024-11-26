@@ -36,7 +36,7 @@ namespace AEPKSS::Sort
      */
     void merge_sort(vector<size_t> &in);
     void merge_sort(vector<size_t> &in, MergeStrategy strategy);
-    void merge_sort_parallel(vector<size_t> &in, size_t concurrency);
+    size_t merge_sort_parallel(vector<size_t> &in, size_t concurrency);
 }
 
 static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy);

@@ -48,10 +48,12 @@ int main(int argc, char *argv[])
     time_point t2 = chrono::high_resolution_clock::now();
     cout << "\tData generation took " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
 
+    size_t jobsProcessed = 0;
+
     if (ALGO == "merge")
     {
         if (TYPE == "mta")
-            AEPKSS::Sort::merge_sort_parallel(inputData, CONCURRENCY);
+            jobsProcessed = AEPKSS::Sort::merge_sort_parallel(inputData, CONCURRENCY);
         else
             AEPKSS::Sort::merge_sort(inputData, AEPKSS::Sort::Classic);
     }
@@ -75,6 +77,7 @@ int main(int argc, char *argv[])
 
     cout << endl;
     cout << "All done!     -      Data is" << (isSorted ? "" : " NOT") << " SORTED!" << endl;
+    cout << "              -      Total jobs: " << jobsProcessed << endl;
     cout << "              -      Total execution time: " << ((chrono::duration<double, std::milli>)(t4 - t1)).count() << "ms" << endl;
     return EXIT_SUCCESS;
 }

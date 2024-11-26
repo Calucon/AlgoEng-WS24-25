@@ -28,6 +28,8 @@ namespace AEPKSS::Util
         void loop();
 
     public:
+        size_t jobsProcessed = 0;
+
         ThreadPool();
         ThreadPool(size_t concurrency);
 

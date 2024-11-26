@@ -59,6 +59,7 @@ void AEPKSS::Util::ThreadPool::loop()
         }
 
         job();
+        jobsProcessed++;
     }
 }
 
