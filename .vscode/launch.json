@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/ParallelSort.exe",
-            "args": ["10000000", "merge", "mta", "24"],
+            "args": ["1000", "merge", "mta", "24"],
             "cwd": "${workspaceFolder}"
           },
 
@@ -18,7 +18,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/ParallelSort.exe",
-            "args": ["10000000", "merge", "sta", "24"],
+            "args": ["1000", "merge", "sta", "24"],
             "cwd": "${workspaceFolder}"
           },
     ]
