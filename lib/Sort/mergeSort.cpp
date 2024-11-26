@@ -16,42 +16,19 @@ void AEPKSS::Sort::merge_sort(vector<size_t> &in, MergeStrategy strategy)
 size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
 {
 
-    // create thread pool
-    auto threadPool = AEPKSS::Util::ThreadPool(concurrency);
-    threadPool.start();
-
-    // perform merge sort
-    binary_semaphore sem{0};
-    split_parallel_v3(in, sem, threadPool);
-
-    // create background task to observe progress
-    // as main thread can not aquire semaphores
-    auto poolObserver = thread([&]
-                               {                 
-        while(threadPool.isBusy()) this_thread::yield();
-        threadPool.stop(); });
-    poolObserver.join();
-
-    return threadPool.jobsProcessed;
-}
-
-static binary_semaphore *split_parallel_v3(vector<size_t> &in, binary_semaphore &semX, AEPKSS::Util::ThreadPool &pool)
-{
     size_t n = in.size();
-    size_t blockSize = n / pool.concurrency;
+    size_t blockSize = n / concurrency;
 
-    if (n < pool.concurrency || blockSize < 1)
+    if (n < concurrency || blockSize < 1)
     {
         split(in, 0, in.size() - 1, AEPKSS::Sort::MergeStrategy::Classic);
-        semX.release();
-        return &semX;
+        return 0;
     }
 
-    map<size_t, vector<AEPKSS::Sort::ParallelMergeData>> cache;
-    size_t cacheLevel = 0;
-    auto populationData = AEPKSS::Sort::ParallelMergeData();
+    vector<shared_future<vector<size_t>>> cache;
+    vector<shared_future<vector<size_t>>> intermediateCache;
 
-    for (auto i = 0; i < pool.concurrency; i++)
+    for (auto i = 0; i < concurrency; i++)
     {
         auto start = i * blockSize;
         auto end = start + blockSize;
@@ -61,147 +38,46 @@ static binary_semaphore *split_parallel_v3(vector<size_t> &in, binary_semaphore 
         binary_semaphore sem{0};
 
         // create buckets
-        if (i + 1 == pool.concurrency)
+        if (i + 1 == concurrency)
             bucket = vector<size_t>(in.begin() + start, in.end());
         else
             bucket = vector<size_t>(in.begin() + start, in.begin() + end);
 
-        const auto func = bind(split_parallel_v3_helper, ref(bucket), ref(sem));
-        pool.submit(func);
+        const auto func = bind(parallell_merge_per_core, bucket);
+        shared_future<vector<size_t>> future = async(launch::async, func);
 
-        // create tasks
-        pair<binary_semaphore *, vector<size_t> *> cachePair = {&sem, &bucket};
-        if (populationData.left == nullptr)
-            populationData.left = &cachePair;
-        else
-        {
-            populationData.right = &cachePair;
-            cache[cacheLevel].emplace_back(populationData);
-            populationData = AEPKSS::Sort::ParallelMergeData();
-        }
-
-        // sem.acquire();
-        // cout << "S: " << bucket.size() << " | s: " << is_sorted(bucket.cbegin(), bucket.cend()) << endl;
+        intermediateCache.emplace_back(future);
     }
 
-    // on uneven processor count
-    if (populationData.left != nullptr)
-        cache[cacheLevel].emplace_back(populationData);
-
-    while (cache[cacheLevel].size() > 1)
+    while (intermediateCache.size() > 1)
     {
-        auto oldLevel = cacheLevel;
-        cacheLevel++;
+        cache.insert(cache.end(), intermediateCache.begin(), intermediateCache.end());
+        vector<shared_future<vector<size_t>>> tmpCache = intermediateCache;
+        intermediateCache.clear();
 
-        for (auto x : cache[oldLevel])
+        for (size_t i = 0, j = tmpCache.size(); i < j; i += 2)
         {
+            auto left = tmpCache[i];
+            optional<shared_future<vector<size_t>>> right = nullopt;
+            if ((i + 1) < j)
+                right = tmpCache[i + 1];
+
+            const auto func = bind(parallell_merge_block, left, right);
+            shared_future<vector<size_t>> future = async(launch::async, func);
+            intermediateCache.emplace_back(future);
         }
     }
 
-    semX.release();
-    return &semX;
-}
-
-static void split_parallel_v3_helper(vector<size_t> &in, binary_semaphore &sem)
-{
-    split(in, 0, in.size() - 1, AEPKSS::Sort::MergeStrategy::Classic);
-    sem.release();
-}
-
-static void split_parallel_v3_merger(AEPKSS::Sort::ParallelMergeData *data)
-{
-}
-
-static binary_semaphore *split_parallel_v2(vector<size_t> &in, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool)
-{
-    size_t middle = in.size() / 2;
-    if (middle == 0)
-    {
-        sem.release();
-        return &sem;
-    }
-
-    if (in.size() < MERGE_SORT_PARALLEL_THRESHOLD)
-    {
-        split(in, 0, in.size() - 1, AEPKSS::Sort::Classic);
-        sem.release();
-        return &sem;
-    }
-
-    binary_semaphore semL{0};
-    binary_semaphore semR{0};
-
-    // create copies to work with
-    vector<size_t> left(in.begin(), in.begin() + middle);
-    vector<size_t> right(in.begin() + middle, in.end());
-
-    // Sort first and second halves
-    auto semLR = split_parallel_v2(left, semL, pool);
-    auto semRR = split_parallel_v2(right, semR, pool);
-
-    semLR->acquire();
-    semRR->acquire();
-
-    const auto func = [=, sem = &sem, in = &in] mutable
-    {
-        auto out = merge_parallel(left, right);
-        *in = move(out);
-        sem->release();
-    };
-    pool.submit(func);
-
-    return &sem;
-}
-
-static void split_parallel(vector<size_t> &in, size_t left, size_t right, size_t semId, AEPKSS::Util::ThreadPool &pool)
-{
-    // end reached, stop splitting
-    if (left >= right)
-        return;
-
-    // acquire lock
-    SemaphoreTracker::getInstance()->get(semId)->acquire();
-
-    // Calculate the midpoint
-    int middle = left + ((right - left) / 2);
-
     if (MERGE_SORT_DEBUG)
-        cout << "\t\tsplit - l: " << left << " | m: " << middle << " | r: " << right << endl;
+        for (auto x : cache)
+        {
+            auto y = x.get();
+            cout << "Is Sorted: " << is_sorted(y.cbegin(), y.cend()) << endl;
+        }
 
-    // create semaphores
-    binary_semaphore semL{1}, semR{1};
-    size_t semIdL = SemaphoreTracker::getInstance()->track(&semL);
-    size_t semIdR = SemaphoreTracker::getInstance()->track(&semR);
+    in = cache.back().get();
 
-    // Splitting
-    split_parallel(in, left, middle, semIdL, pool);
-    split_parallel(in, middle + 1, right, semIdR, pool);
-
-    if (MERGE_SORT_DEBUG)
-        cout << "\t\tlambda - l: " << left << " | m: " << middle << " | r: " << right << endl;
-
-    const auto func = [semId = semId, semIdL = semIdL, semIdR = semIdR, in = &in, left = left, middle = middle, right = right]
-    {
-        if (MERGE_SORT_DEBUG)
-            cout << "\t\tdbg - l: " << left << " | m: " << middle << " | r: " << right << endl;
-
-        // create lock in job scope
-        SemaphoreTracker::getInstance()->get(semIdL)->acquire();
-        SemaphoreTracker::getInstance()->get(semIdR)->acquire();
-
-        // perform merge
-        merge_classic(*in, left, right, middle);
-
-        // unlock all
-        SemaphoreTracker::getInstance()->get(semIdL)->release();
-        SemaphoreTracker::getInstance()->get(semIdR)->release();
-        SemaphoreTracker::getInstance()->get(semId)->release();
-
-        if (MERGE_SORT_DEBUG)
-            cout << "\t\tdbgend - l: " << left << " | m: " << middle << " | r: " << right << endl;
-    };
-    // func();
-    pool.submit(func);
+    return cache.size();
 }
 
 static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::MergeStrategy strategy)
@@ -354,4 +230,20 @@ static vector<size_t> merge_parallel(vector<size_t> &left, vector<size_t> &right
         out[pO++] = right[pR++];
 
     return out;
+}
+
+static vector<size_t> parallell_merge_per_core(vector<size_t> &in)
+{
+    split(in, 0, in.size() - 1, AEPKSS::Sort::MergeStrategy::Classic);
+    return in;
+}
+
+static vector<size_t> parallell_merge_block(shared_future<vector<size_t>> &left, optional<shared_future<vector<size_t>>> &right)
+{
+    if (!right.has_value())
+        return left.get();
+
+    auto l = left.get();
+    auto r = right.value().get();
+    return merge_parallel(l, r);
 }
