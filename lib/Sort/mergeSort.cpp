@@ -18,22 +18,60 @@ void AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
 
     // create thread pool
     auto threadPool = AEPKSS::Util::ThreadPool(concurrency);
+    threadPool.start();
 
     // perform merge sort
-    binary_semaphore sem{1};
-    size_t semId = SemaphoreTracker::getInstance()->track(&sem);
-
-    split_parallel(in, 0, in.size() - 1, semId, threadPool);
-    threadPool.start();
+    binary_semaphore sem{0};
+    split_parallel_v2(in, sem, threadPool);
 
     // create background task to observe progress
     // as main thread can not aquire semaphores
-    auto poolObserver = thread([pool = &threadPool, sem = &sem]
-                               {
-        sem->acquire();
-        pool->stop();
-        sem->release(); });
+    auto poolObserver = thread([&]
+                               {                 
+        while(threadPool.isBusy()) this_thread::yield();
+        threadPool.stop(); });
     poolObserver.join();
+}
+
+static binary_semaphore *split_parallel_v2(vector<size_t> &in, binary_semaphore &sem, AEPKSS::Util::ThreadPool &pool)
+{
+    size_t middle = in.size() / 2;
+    if (middle == 0)
+    {
+        sem.release();
+        return &sem;
+    }
+
+    if (in.size() < MERGE_SORT_PARALLEL_THRESHOLD)
+    {
+        split(in, 0, in.size() - 1, AEPKSS::Sort::Classic);
+        sem.release();
+        return &sem;
+    }
+
+    binary_semaphore semL{0};
+    binary_semaphore semR{0};
+
+    // create copies to work with
+    vector<size_t> left(in.begin(), in.begin() + middle);
+    vector<size_t> right(in.begin() + middle, in.end());
+
+    // Sort first and second halves
+    auto semLR = split_parallel_v2(left, semL, pool);
+    auto semRR = split_parallel_v2(right, semR, pool);
+
+    semLR->acquire();
+    semRR->acquire();
+
+    const auto func = [=, sem = &sem, in = &in] mutable
+    {
+        auto out = merge_parallel(left, right);
+        *in = move(out);
+        sem->release();
+    };
+    pool.submit(func);
+
+    return &sem;
 }
 
 static void split_parallel(vector<size_t> &in, size_t left, size_t right, size_t semId, AEPKSS::Util::ThreadPool &pool)
@@ -212,4 +250,29 @@ static void merge_classic(vector<size_t> &in, size_t left, size_t right, size_t 
         buffRight.pop();
         pL++;
     }
+}
+
+static vector<size_t> merge_parallel(vector<size_t> &left, vector<size_t> &right)
+{
+    size_t pL = 0, pR = 0, pO = 0;
+    int64_t sL = left.size(), sR = right.size();
+
+    vector<size_t> out;
+    out.reserve(sL + sR);
+
+    while (pL < sL && pR < sR)
+    {
+        if (left[pL] <= right[pR])
+            out[pO++] = left[pL++];
+        else
+            out[pO++] = right[pR++];
+    }
+
+    while (pL < sL)
+        out[pO++] = left[pL++];
+
+    while (pR < sR)
+        out[pO++] = right[pR++];
+
+    return out;
 }
