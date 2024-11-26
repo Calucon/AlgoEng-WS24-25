@@ -54,6 +54,15 @@ static void split(vector<size_t> &in, size_t left, size_t right, AEPKSS::Sort::M
 static void merge_in_memory(vector<size_t> &in, size_t left, size_t right, size_t middle);
 static void merge_classic(vector<size_t> &in, size_t left, size_t right, size_t middle);
 
+/**
+ * Merge Sort task per individual processor
+ */
 static vector<size_t> parallell_merge_per_core(vector<size_t> &in);
+/**
+ * Merge the result of two processors
+ */
 static vector<size_t> parallell_merge_block(shared_future<vector<size_t>> &left, optional<shared_future<vector<size_t>>> &right);
+/**
+ * Merge both inputs and return the result
+ */
 static vector<size_t> merge_parallel(vector<size_t> &left, vector<size_t> &right);

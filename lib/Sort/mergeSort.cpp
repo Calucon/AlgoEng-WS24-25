@@ -49,6 +49,7 @@ size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
         intermediateCache.emplace_back(future);
     }
 
+    // bottom-up approach: merge results of individual processors
     while (intermediateCache.size() > 1)
     {
         cache.insert(cache.end(), intermediateCache.begin(), intermediateCache.end());
@@ -69,14 +70,16 @@ size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
     }
 
     if (MERGE_SORT_DEBUG)
+        // query each future and show if the result is sorted
         for (auto x : cache)
         {
             auto y = x.get();
             cout << "Is Sorted: " << is_sorted(y.cbegin(), y.cend()) << endl;
         }
 
+    // wait for the last future to complete
+    // the last task returns the complete sorted input set
     in = cache.back().get();
-
     return cache.size();
 }
 
