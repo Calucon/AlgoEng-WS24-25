@@ -19,10 +19,10 @@ size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
     size_t n = in.size();
     size_t blockSize = n / concurrency;
 
-    if (n < concurrency || blockSize < 1)
+    if (n < concurrency || concurrency <= 1 || blockSize <= 1)
     {
         split(in, 0, in.size() - 1, AEPKSS::Sort::MergeStrategy::Classic);
-        return 0;
+        return 1;
     }
 
     vector<shared_future<vector<size_t>>> cache;
