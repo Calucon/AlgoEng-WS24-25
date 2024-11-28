@@ -11,15 +11,22 @@
             "program": "${workspaceFolder}/bin/ParallelSort.exe",
             "args": ["1000", "merge", "mta", "24"],
             "cwd": "${workspaceFolder}"
-          },
-
-          {
+        },
+        {
             "name": "ParallelSort (merge, sta)",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/ParallelSort.exe",
             "args": ["1000", "merge", "sta", "24"],
             "cwd": "${workspaceFolder}"
-          },
+        },
+        {
+            "name": "ParallelSort (quick, sta)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/ParallelSort.exe",
+            "args": ["1000", "quick", "sta", "24"],
+            "cwd": "${workspaceFolder}"
+        }
     ]
 }

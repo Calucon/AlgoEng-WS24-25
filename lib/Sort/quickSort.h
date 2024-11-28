@@ -10,3 +10,5 @@ namespace AEPKSS::Sort
 
 static void sort(vector<size_t> &in, size_t left, size_t right);
 static size_t partition(vector<size_t> &in, size_t left, size_t right);
+
+static void sort_parallel(vector<size_t> &in, size_t left, size_t right);
