@@ -8,14 +8,10 @@
 
 #include <iostream>
 
-#include "../Utils/threadPool.h"
-#include "../Utils/semaphoreTracker.h"
-#include <semaphore>
 #include <future>
 #include <thread>
 
 using namespace std;
-using namespace AEPKSS::Util;
 
 #ifndef MERGE_SORT_DEBUG
 #define MERGE_SORT_DEBUG false

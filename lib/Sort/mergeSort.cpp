@@ -15,7 +15,6 @@ void AEPKSS::Sort::merge_sort(vector<size_t> &in, MergeStrategy strategy)
 
 size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
 {
-
     size_t n = in.size();
     size_t blockSize = n / concurrency;
 
@@ -35,8 +34,6 @@ size_t AEPKSS::Sort::merge_sort_parallel(vector<size_t> &in, size_t concurrency)
         auto end = start + blockSize;
 
         vector<size_t> bucket;
-        vector<size_t> out;
-        binary_semaphore sem{0};
 
         // create buckets
         if (i + 1 == concurrency)
