@@ -84,32 +84,35 @@ static size_t partition_parallel(vector<size_t> &in, size_t concurrency)
         cache.emplace_back(future);
     }
 
-    vector<size_t> buffer;
+    size_t offsetL = 0, offsetR = 0;
     for (auto task : cache)
     {
         auto result = task.get();
         auto begin = result.in->begin();
-        buffer.insert(buffer.end(), begin, begin + result.countLeft);
-    }
-    tasks += partition_parallel(buffer, concurrency);
+        auto end = result.in->end();
 
-    // merge left into input
+        offsetR += result.countRight;
+        copy(begin, begin + result.countLeft, in.begin() + offsetL);
+        copy(end - result.countRight, end, in.end() - offsetR);
+        offsetL += result.countLeft;
+    }
+    // free cache memory
+    cache.clear();
+
+    // sort and merge left side
+    auto buffer = vector<size_t>(in.begin(), in.begin() + offsetL);
+    tasks += partition_parallel(buffer, concurrency);
     copy(buffer.begin(), buffer.end(), in.begin());
+
     // place pivot element
     pivotIndex = buffer.size();
     in[pivotIndex] = pivot;
 
-    buffer.clear();
-    for (auto task : cache)
-    {
-        auto result = task.get();
-        auto end = result.in->end();
-        buffer.insert(buffer.end(), end - result.countRight, end);
-    }
+    // sort and merge right side
+    buffer = vector<size_t>(in.end() - offsetR, in.end());
     tasks += partition_parallel(buffer, concurrency);
+    copy(buffer.begin(), buffer.end(), in.end() - buffer.size());
 
-    // merge right into input
-    copy(buffer.begin(), buffer.end(), in.begin() + pivotIndex + 1);
     return tasks;
 }
 
