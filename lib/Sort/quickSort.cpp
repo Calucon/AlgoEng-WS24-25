@@ -62,6 +62,15 @@ size_t AEPKSS::Sort::quick_sort_parallel(vector<size_t> &in, size_t concurrency)
         if (count == 0)
             continue;
 
+        cout << endl
+             << "L: " << count << endl;
+        for (auto y : *(x.in))
+        {
+            cout << y << " - " << (y < pivot) << endl;
+        }
+        cout << endl
+             << endl;
+
         auto begin = x.in->begin();
         copy(begin, begin + count, in.begin() + inOffset);
         inOffset += count;
@@ -79,12 +88,30 @@ size_t AEPKSS::Sort::quick_sort_parallel(vector<size_t> &in, size_t concurrency)
         if (count == 0)
             continue;
 
+        cout << endl
+             << "R: " << count << endl;
+        for (auto y : *(x.in))
+        {
+            cout << y << " - " << (y > pivot) << endl;
+        }
+        cout << endl
+             << endl;
+
         auto end = x.in->end();
         copy(end - count, end, in.begin() + inOffset);
         inOffset += count;
 
         queueRight.pop();
     }
+
+    cout << endl
+         << endl;
+    for (auto x : in)
+    {
+        cout << x << endl;
+    }
+    cout << endl
+         << endl;
 
     return concurrency;
 }

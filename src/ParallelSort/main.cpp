@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     cout << "ParalellSort | Algo: " << ALGO << ", Size: " << SIZE << ", Type: " << TYPE << ", Concurrency: " << CONCURRENCY << endl;
 
     time_point t1 = chrono::high_resolution_clock::now();
-    auto numGen = AEPKSS::Util::NumberGenerator(PARALELL_SORT_SEED);
+    auto numGen = AEPKSS::Util::NumberGenerator32(PARALELL_SORT_SEED);
     auto inputData = vector<size_t>(SIZE);
     for (auto x = 0; x < SIZE; x++)
     {
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
     // FIXME: debug only
     // inputData = {8, 4, 6, 2};
-    inputData = {1, 2, 3, 32, 15, 64, 6, 8, 9};
+    // inputData = {1, 2, 3, 32, 15, 64, 6, 8, 9};
 
     size_t jobsProcessed = 0;
 
