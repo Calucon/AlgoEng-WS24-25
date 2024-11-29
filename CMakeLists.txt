@@ -25,5 +25,5 @@ add_subdirectory(lib/Utils)
 # programms
 add_subdirectory(src/FileAnalyzer)
 add_subdirectory(src/FileGenerator)
-add_subdirectory(src/EM_MergeSort)
-add_subdirectory(src/ParallelSort)
+add_subdirectory(Exercise1/src/EM_MergeSort)
+add_subdirectory(Exercise2/src/ParallelSort)
