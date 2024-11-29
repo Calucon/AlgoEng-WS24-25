@@ -27,6 +27,14 @@
             "program": "${workspaceFolder}/bin/ParallelSort.exe",
             "args": ["1000", "quick", "sta", "24"],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "ParallelSort (quick, mta)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/ParallelSort.exe",
+            "args": ["1000", "quick", "mta", "2"],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

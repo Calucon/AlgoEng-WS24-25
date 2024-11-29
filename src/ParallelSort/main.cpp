@@ -48,6 +48,10 @@ int main(int argc, char *argv[])
     time_point t2 = chrono::high_resolution_clock::now();
     cout << "\tData generation took " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
 
+    // FIXME: debug only
+    // inputData = {8, 4, 6, 2};
+    inputData = {1, 2, 3, 32, 15, 64, 6, 8, 9};
+
     size_t jobsProcessed = 0;
 
     if (ALGO == "merge")
@@ -61,8 +65,7 @@ int main(int argc, char *argv[])
     {
         if (TYPE == "mta")
         {
-            cerr << "Quick Sort not supported (yet)!" << endl;
-            return EXIT_FAILURE;
+            jobsProcessed = AEPKSS::Sort::quick_sort_parallel(inputData, CONCURRENCY);
         }
         else
             AEPKSS::Sort::quick_sort(inputData);
