@@ -17,25 +17,17 @@ namespace AEPKSS::Sort
     struct ParallelQuickSortReturn
     {
         vector<size_t> *in;
-        queue<size_t> prefixSumLeft;
-        queue<size_t> prefixSumRight;
+        vector<size_t> prefixSumLeft;
+        vector<size_t> prefixSumRight;
         size_t countLeft = 0;
         size_t countRight = 0;
     };
 
-    struct ParallelQuickSortReturnComparatorLeft
+    struct ParallelQuickSortPairComparator
     {
-        bool operator()(ParallelQuickSortReturn &x, ParallelQuickSortReturn &y)
+        bool operator()(pair<size_t, size_t> &x, pair<size_t, size_t> &y)
         {
-            return x.prefixSumLeft.front() < x.prefixSumLeft.front();
-        }
-    };
-
-    struct ParallelQuickSortReturnComparatorRight
-    {
-        bool operator()(ParallelQuickSortReturn &x, ParallelQuickSortReturn &y)
-        {
-            return x.prefixSumRight.front() < x.prefixSumRight.front();
+            return x.first > y.first;
         }
     };
 }
@@ -44,3 +36,4 @@ static void sort(vector<size_t> &in, size_t left, size_t right);
 static size_t partition(vector<size_t> &in, size_t left, size_t right);
 
 static AEPKSS::Sort::ParallelQuickSortReturn sort_parallel(vector<size_t> &in, size_t pivot);
+static vector<size_t> position_by_prefixsum(vector<shared_future<AEPKSS::Sort::ParallelQuickSortReturn>> &cache, bool &isLeft);

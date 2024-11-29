@@ -33,7 +33,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/ParallelSort.exe",
-            "args": ["10", "quick", "mta", "2"],
+            "args": ["1000", "quick", "mta", "24"],
             "cwd": "${workspaceFolder}"
         }
     ]

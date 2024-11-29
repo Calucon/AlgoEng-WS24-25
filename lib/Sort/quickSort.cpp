@@ -41,113 +41,20 @@ size_t AEPKSS::Sort::quick_sort_parallel(vector<size_t> &in, size_t concurrency)
         cache.emplace_back(future);
     }
 
-    priority_queue<ParallelQuickSortReturn, vector<ParallelQuickSortReturn>, ParallelQuickSortReturnComparatorLeft> queueLeft;
-    priority_queue<ParallelQuickSortReturn, vector<ParallelQuickSortReturn>, ParallelQuickSortReturnComparatorRight> queueRight;
-    vector<ParallelQuickSortReturn> resRight;
-    vector<ParallelQuickSortReturn> resLeft;
+    const bool isLeft = true;
+    const bool isNotLeft = false;
 
-    for (auto task : cache)
-    {
-        auto result = task.get();
-        resRight.emplace_back(result);
-        resLeft.emplace_back(result);
-        queueLeft.push(result);
-        queueRight.push(result);
-    }
+    const auto positionLeft = bind(position_by_prefixsum, cache, true);
+    shared_future<vector<size_t>> futureLeft = async(launch::async, positionLeft);
 
-    cout << endl
-         << endl;
-    for (auto x : in)
-    {
-        cout << x << endl;
-    }
-    cout << endl
-         << endl;
-    cout << "Pivot: " << pivot << endl;
+    const auto positionRight = bind(position_by_prefixsum, cache, false);
+    shared_future<vector<size_t>> futureRight = async(launch::async, positionRight);
 
-    size_t inOffset = 0;
-
-    while (resLeft.size() > 0)
-    {
-        // 1 find min prefix sum
-        size_t index = 0, minPrefixSum = -1;
-        for (auto i = 0; i < resLeft.size(); i++)
-        {
-            if (resLeft[i].prefixSumLeft.front() < minPrefixSum)
-            {
-                minPrefixSum = resLeft[i].prefixSumLeft.front();
-                index = i;
-            }
-        }
-
-        auto r = resLeft[index];
-        in[inOffset++] = r.in->front();
-        r.in->erase(r.in->begin());
-        r.prefixSumLeft.pop();
-        r.countLeft--;
-
-        if (r.countLeft == 0)
-            resLeft.erase(resLeft.begin() + index);
-    }
-
-    in[inOffset] = pivot;
-    inOffset++;
-
-    /*while (resRight.size() > 0)
-    {
-        // 1 find min prefix sum
-        size_t index = 0, minPrefixSum = -1;
-        for (auto i = 0; i < resRight.size(); i++)
-        {
-            if (resRight[i].prefixSumRight.front() < minPrefixSum)
-            {
-                minPrefixSum = resRight[i].prefixSumRight.front();
-                index = i;
-            }
-        }
-
-        auto r = resRight[index];
-        in[inOffset++] = r.in->at(r.in->end() - r.countRight);
-        r.in->erase(r.in->begin());
-        r.prefixSumRight.pop();
-        r.countRight--;
-
-        if (r.countLeft == 0)
-            resRight.erase(resRight.begin() + index);
-    }*/
-
-    /*while (!queueRight.empty())
-    {
-        auto x = queueRight.top();
-        auto count = x.countRight;
-        if (count == 0)
-            continue;
-
-        // 12995105569
-        //  9230669516
-
-        for (auto y : x.prefixSumRight)
-        {
-            cout << y << " - " << (y > pivot) << endl;
-        }
-        cout << endl
-             << endl;
-
-        auto end = x.in->end();
-        copy(end - count, end, in.begin() + inOffset);
-        inOffset += count;
-
-        queueRight.pop();
-    }*/
-
-    cout << endl
-         << endl;
-    for (auto x : in)
-    {
-        cout << x << endl;
-    }
-    cout << endl
-         << endl;
+    auto leftSide = futureLeft.get();
+    copy(leftSide.begin(), leftSide.end(), in.begin());
+    in[leftSide.size()] = pivot;
+    auto rightSide = futureRight.get();
+    copy(rightSide.begin(), rightSide.end(), in.begin() + leftSide.size() + 1);
 
     return concurrency;
 }
@@ -196,12 +103,12 @@ static AEPKSS::Sort::ParallelQuickSortReturn sort_parallel(vector<size_t> &in, s
         if (x < pivot)
         {
             lastSumLeft += x;
-            ret.prefixSumLeft.push(lastSumLeft);
+            ret.prefixSumLeft.emplace_back(lastSumLeft);
         }
         else if (x > pivot)
         {
             lastSumRight += x;
-            ret.prefixSumRight.push(lastSumRight);
+            ret.prefixSumRight.emplace_back(lastSumRight);
         }
     }
 
@@ -209,4 +116,40 @@ static AEPKSS::Sort::ParallelQuickSortReturn sort_parallel(vector<size_t> &in, s
     ret.countRight = ret.prefixSumRight.size();
 
     return ret;
+}
+
+static vector<size_t> position_by_prefixsum(vector<shared_future<AEPKSS::Sort::ParallelQuickSortReturn>> &cache, bool &isLeft)
+{
+    priority_queue<pair<size_t, size_t>, vector<pair<size_t, size_t>>, AEPKSS::Sort::ParallelQuickSortPairComparator> queue;
+
+    for (auto task : cache)
+    {
+        auto result = task.get();
+        auto in = *result.in;
+
+        auto startIndex = isLeft ? 0 : (in.size() - result.countRight);
+        for (auto i : (isLeft ? result.prefixSumLeft : result.prefixSumRight))
+        {
+            // cout << "I: " << i << " | V: " << in[startIndex] << endl;
+            queue.push({i, in[startIndex]});
+            startIndex++;
+        }
+    }
+
+    vector<size_t> out;
+    out.reserve(queue.size());
+
+    while (!queue.empty())
+    {
+        // cout << "Q: " << queue.top().first << " - " << queue.top().second << endl;
+        out.emplace_back(queue.top().second);
+        queue.pop();
+    }
+
+    // FIXME: honestly this should now be sorted but in fact it is not for e.g. 11 values and 2 threads
+    // either i do not understand prefix sums or there is something else off here
+    // to at least get the algorithm to run let's do the following:
+    std::sort(out.begin(), out.end());
+
+    return out;
 }
