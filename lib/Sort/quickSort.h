@@ -9,6 +9,10 @@
 using namespace std;
 using namespace AEPKSS::Sort;
 
+#ifndef QUICK_SORT_THRESHOLD
+#define QUICK_SORT_THRESHOLD 1000
+#endif
+
 namespace AEPKSS::Sort
 {
     void quick_sort(vector<size_t> &in);
@@ -17,8 +21,6 @@ namespace AEPKSS::Sort
     struct ParallelQuickSortReturn
     {
         vector<size_t> *in;
-        vector<size_t> prefixSumLeft;
-        vector<size_t> prefixSumRight;
         size_t countLeft = 0;
         size_t countRight = 0;
     };
@@ -35,5 +37,5 @@ namespace AEPKSS::Sort
 static void sort(vector<size_t> &in, size_t left, size_t right);
 static size_t partition(vector<size_t> &in, size_t left, size_t right);
 
+static size_t partition_parallel(vector<size_t> &in, size_t concurrency);
 static AEPKSS::Sort::ParallelQuickSortReturn sort_parallel(vector<size_t> &in, size_t pivot);
-static vector<size_t> position_by_prefixsum(vector<shared_future<AEPKSS::Sort::ParallelQuickSortReturn>> &cache, bool &isLeft);
