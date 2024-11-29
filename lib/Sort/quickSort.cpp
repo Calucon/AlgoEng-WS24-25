@@ -19,7 +19,7 @@ size_t AEPKSS::Sort::quick_sort_parallel(vector<size_t> &in, size_t concurrency)
     return partition_parallel(in, concurrency);
 }
 
-static void sort(vector<size_t> &in, size_t left, size_t right)
+static void sort(vector<size_t> &in, long long left, long long right)
 {
     if (left >= right)
         return;
@@ -30,7 +30,7 @@ static void sort(vector<size_t> &in, size_t left, size_t right)
     sort(in, pIndex + 1, right);
 }
 
-static size_t partition(vector<size_t> &in, size_t left, size_t right)
+static size_t partition(vector<size_t> &in, long long left, long long right)
 {
     auto pivot = in[right];
     size_t swapIndex = left;
@@ -118,7 +118,7 @@ static AEPKSS::Sort::ParallelQuickSortReturn sort_parallel(vector<size_t> &in, s
     AEPKSS::Sort::ParallelQuickSortReturn ret;
     ret.in = &in;
 
-    for (size_t left = 0, right = in.size() - 1; left <= right; left++)
+    for (long long left = 0, right = in.size() - 1; left <= right; left++)
     {
         if (in[left] < pivot)
         {
