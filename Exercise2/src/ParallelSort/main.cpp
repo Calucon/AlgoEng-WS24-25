@@ -46,11 +46,8 @@ int main(int argc, char *argv[])
         inputData[x] = numGen.next();
     }
     time_point t2 = chrono::high_resolution_clock::now();
-    cout << "\tData generation took " << ((chrono::duration<double, std::milli>)(t2 - t1)).count() << "ms" << endl;
-
-    // FIXME: debug only
-    // inputData = {8, 4, 6, 2};
-    // inputData = {1, 2, 3, 32, 15, 64, 6, 8, 9};
+    const auto timeGenData = ((chrono::duration<double, std::milli>)(t2 - t1)).count();
+    cout << "\tData generation took " << timeGenData << "ms" << endl;
 
     size_t jobsProcessed = 0;
 
@@ -72,15 +69,28 @@ int main(int argc, char *argv[])
     }
 
     time_point t3 = chrono::high_resolution_clock::now();
-    cout << "\tSorting took " << ((chrono::duration<double, std::milli>)(t3 - t2)).count() << "ms" << endl;
+    const auto timeSort = ((chrono::duration<double, std::milli>)(t3 - t2)).count();
+    cout << "\tSorting took " << timeSort << "ms" << endl;
 
     bool isSorted = is_sorted(inputData.cbegin(), inputData.cend());
     time_point t4 = chrono::high_resolution_clock::now();
-    cout << "\tValidation took " << ((chrono::duration<double, std::milli>)(t4 - t3)).count() << "ms" << endl;
+    const auto timeVerify = ((chrono::duration<double, std::milli>)(t4 - t3)).count();
+    cout << "\tValidation took " << timeVerify << "ms" << endl;
 
+    const auto timeTotal = ((chrono::duration<double, std::milli>)(t4 - t1)).count();
     cout << endl;
     cout << "All done!     -      Data is" << (isSorted ? "" : " NOT") << " SORTED!" << endl;
     cout << "              -      Total jobs: " << jobsProcessed << endl;
-    cout << "              -      Total execution time: " << ((chrono::duration<double, std::milli>)(t4 - t1)).count() << "ms" << endl;
+    cout << "              -      Total execution time: " << timeTotal << "ms" << endl;
+
+    cerr << SIZE << ",";
+    cerr << ALGO << ",";
+    cerr << TYPE << ",";
+    cerr << CONCURRENCY << ",";
+    cerr << timeGenData << ",";
+    cerr << timeSort << ",";
+    cerr << timeVerify << ",";
+    cerr << timeTotal << ",";
+    cerr << isSorted << endl;
     return EXIT_SUCCESS;
 }
