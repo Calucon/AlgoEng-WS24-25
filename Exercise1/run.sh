@@ -12,7 +12,7 @@ echo -e "\n\n"
 read -p "Do you want to (re-)generate input data files? [y/N]: " -n 1 -r
 echo # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-    /bin/bash gendata.sh
+    /bin/bash Exercise1/gendata.sh
     echo -e "\n\n"
 fi
 
