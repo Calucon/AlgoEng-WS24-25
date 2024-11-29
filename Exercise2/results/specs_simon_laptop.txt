@@ -1,0 +1,6 @@
+CPU: AMD® Ryzen 7 7840HS (16 Threads)
+RAM: 32GB
+OS: Zorin OS 17.2 (Ubuntu 22.04 LTS)
+
+cmake version 3.22.1
+gcc version 13.1.0
