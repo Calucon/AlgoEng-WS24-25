@@ -43,11 +43,14 @@ size_t AEPKSS::Sort::quick_sort_parallel(vector<size_t> &in, size_t concurrency)
 
     priority_queue<ParallelQuickSortReturn, vector<ParallelQuickSortReturn>, ParallelQuickSortReturnComparatorLeft> queueLeft;
     priority_queue<ParallelQuickSortReturn, vector<ParallelQuickSortReturn>, ParallelQuickSortReturnComparatorRight> queueRight;
-    vector<size_t> out;
+    vector<ParallelQuickSortReturn> resRight;
+    vector<ParallelQuickSortReturn> resLeft;
 
     for (auto task : cache)
     {
         auto result = task.get();
+        resRight.emplace_back(result);
+        resLeft.emplace_back(result);
         queueLeft.push(result);
         queueRight.push(result);
     }
@@ -61,35 +64,59 @@ size_t AEPKSS::Sort::quick_sort_parallel(vector<size_t> &in, size_t concurrency)
     cout << endl
          << endl;
     cout << "Pivot: " << pivot << endl;
+
     size_t inOffset = 0;
 
-    while (!queueLeft.empty())
+    while (resLeft.size() > 0)
     {
-        auto x = queueLeft.top();
-        auto count = x.countLeft;
-        if (count == 0)
-            continue;
-
-        cout << endl
-             << "L: " << count << " | SUM: " << x.prefixSumLeft << endl;
-        for (auto y : *(x.in))
+        // 1 find min prefix sum
+        size_t index = 0, minPrefixSum = -1;
+        for (auto i = 0; i < resLeft.size(); i++)
         {
-            cout << y << " - " << (y < pivot) << endl;
+            if (resLeft[i].prefixSumLeft.front() < minPrefixSum)
+            {
+                minPrefixSum = resLeft[i].prefixSumLeft.front();
+                index = i;
+            }
         }
-        cout << endl
-             << endl;
 
-        auto begin = x.in->begin();
-        copy(begin, begin + count, in.begin() + inOffset);
-        inOffset += count;
+        auto r = resLeft[index];
+        in[inOffset++] = r.in->front();
+        r.in->erase(r.in->begin());
+        r.prefixSumLeft.pop();
+        r.countLeft--;
 
-        queueLeft.pop();
+        if (r.countLeft == 0)
+            resLeft.erase(resLeft.begin() + index);
     }
 
     in[inOffset] = pivot;
     inOffset++;
 
-    while (!queueRight.empty())
+    /*while (resRight.size() > 0)
+    {
+        // 1 find min prefix sum
+        size_t index = 0, minPrefixSum = -1;
+        for (auto i = 0; i < resRight.size(); i++)
+        {
+            if (resRight[i].prefixSumRight.front() < minPrefixSum)
+            {
+                minPrefixSum = resRight[i].prefixSumRight.front();
+                index = i;
+            }
+        }
+
+        auto r = resRight[index];
+        in[inOffset++] = r.in->at(r.in->end() - r.countRight);
+        r.in->erase(r.in->begin());
+        r.prefixSumRight.pop();
+        r.countRight--;
+
+        if (r.countLeft == 0)
+            resRight.erase(resRight.begin() + index);
+    }*/
+
+    /*while (!queueRight.empty())
     {
         auto x = queueRight.top();
         auto count = x.countRight;
@@ -99,9 +126,7 @@ size_t AEPKSS::Sort::quick_sort_parallel(vector<size_t> &in, size_t concurrency)
         // 12995105569
         //  9230669516
 
-        cout << endl
-             << "R: " << count << " | SUM: " << x.prefixSumRight << endl;
-        for (auto y : *(x.in))
+        for (auto y : x.prefixSumRight)
         {
             cout << y << " - " << (y > pivot) << endl;
         }
@@ -113,7 +138,7 @@ size_t AEPKSS::Sort::quick_sort_parallel(vector<size_t> &in, size_t concurrency)
         inOffset += count;
 
         queueRight.pop();
-    }
+    }*/
 
     cout << endl
          << endl;
@@ -158,34 +183,30 @@ static size_t partition(vector<size_t> &in, size_t left, size_t right)
 
 static AEPKSS::Sort::ParallelQuickSortReturn sort_parallel(vector<size_t> &in, size_t pivot)
 {
-    if (in.size() < 2)
-        return {
-            .in = &in,
-            .prefixSumLeft = in[0] < pivot ? in[0] : 0,
-            .prefixSumRight = in[0] > pivot ? in[0] : 0,
-            .countLeft = (size_t)(in[0] < pivot ? 1 : 0),
-            .countRight = (size_t)(in[0] > pivot ? 1 : 0),
-        };
-
     AEPKSS::Sort::ParallelQuickSortReturn ret;
 
     // preliminary sorting
     AEPKSS::Sort::quick_sort(in);
     ret.in = &in;
 
+    size_t lastSumLeft = 0, lastSumRight = 0;
+
     for (auto x : in)
     {
         if (x < pivot)
         {
-            ret.countLeft++;
-            ret.prefixSumLeft += x;
+            lastSumLeft += x;
+            ret.prefixSumLeft.push(lastSumLeft);
         }
         else if (x > pivot)
         {
-            ret.countRight++;
-            ret.prefixSumRight += x;
+            lastSumRight += x;
+            ret.prefixSumRight.push(lastSumRight);
         }
     }
+
+    ret.countLeft = ret.prefixSumLeft.size();
+    ret.countRight = ret.prefixSumRight.size();
 
     return ret;
 }

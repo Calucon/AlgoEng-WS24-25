@@ -17,8 +17,8 @@ namespace AEPKSS::Sort
     struct ParallelQuickSortReturn
     {
         vector<size_t> *in;
-        size_t prefixSumLeft = 0;
-        size_t prefixSumRight = 0;
+        queue<size_t> prefixSumLeft;
+        queue<size_t> prefixSumRight;
         size_t countLeft = 0;
         size_t countRight = 0;
     };
@@ -27,7 +27,7 @@ namespace AEPKSS::Sort
     {
         bool operator()(ParallelQuickSortReturn &x, ParallelQuickSortReturn &y)
         {
-            return x.prefixSumLeft < x.prefixSumLeft;
+            return x.prefixSumLeft.front() < x.prefixSumLeft.front();
         }
     };
 
@@ -35,7 +35,7 @@ namespace AEPKSS::Sort
     {
         bool operator()(ParallelQuickSortReturn &x, ParallelQuickSortReturn &y)
         {
-            return x.prefixSumRight < x.prefixSumRight;
+            return x.prefixSumRight.front() < x.prefixSumRight.front();
         }
     };
 }
