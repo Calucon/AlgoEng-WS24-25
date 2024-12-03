@@ -12,7 +12,7 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 
-bin/
+#bin/
 build/
 data/
 out/
