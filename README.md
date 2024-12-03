@@ -8,6 +8,21 @@ Patrick Koston & Simon Schwitz
 - `gcc` version `v13` or newer
   - `v12` should still work but C23 standard is only experimental
 
+### Windows
+
+- `gcc` supporting the `MinGW Makefiles` Generator
+
+### Linux
+
+- `gcc` supporting the `Unix Makefiles` Generator
+
+### MacOS
+
+- We don't own a Mac, it's way to expernsive
+- It is up to the user to find this out
+
+Therefore MacOS builds are not supported from our side
+
 ## Build the project
 
 ```sh
@@ -16,6 +31,9 @@ Patrick Koston & Simon Schwitz
 
 # Windows
 ./build.ps1
+
+# MacOS
+echo "Not supported"
 ```
 
 You can find the binaries in the `bin/` folder after compilation
@@ -41,14 +59,24 @@ There are no external libraries required to build the code.
 
 This library contains everything that is necessary for FileIO.
 
+- FileReader
+- FileWriter
+
 #### Sort
 
 > Source: `lib/Sort`
 
 This library implements the various sorting algorithms required by different assignments
 
+- IntroSort
+- QuickSort (classic and parallel)
+- MergeSort (classic and parallel)
+
 #### Utils
 
 > Source: `lib/Utils`
 
 This library implements various helper classes and functions that are used for different assignments
+
+- NumberGenerator (64bit integer)
+- NumberGenerator32 (32bit integer)

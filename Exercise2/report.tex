@@ -21,11 +21,35 @@
 
 \section{Introduction}
 
-\section{How to build and run the project}
+\section{Build and Run the project}
 
-In order to build the project you must have all requirements installed from the \texttt{README.md} file in the project root directory.
-Prior to executing the build script, make sure the that \texttt{gcc} and \texttt{g++} (part of gcc) compiler are either the only compilers installed or that you tell CMake which compilers to use using environment variables.\\
-To facilitate this step, we recommend using Visual Studio Code and the CMake Extension.
+In order to build the project you must meet all requirements from the \texttt{README.md} file in the project root directory.
+The build script will check whether \texttt{gcc} and \texttt{g++} commands are present on your system. 
+Note: it will not check the their version so make sure the required minimum version is installed!\\
+\\
+In case the build fails, we now also include pre-built binaries in the \texttt{bin/} directory.\\
+\\
+You can also check the state whether Linux build success or not using the \href{https://gitlab.inf.uni-konstanz.de/ag-storandt/ae-24/koston.schwitz/-/pipelines}{GitlabCI Pipeline}. 
+This pipeline uses the latest \texttt{gcc} version which as of writing is \texttt{14.2.0}. 
+You can verify this on \href{https://hub.docker.com/_/gcc}{Dockerhub} or when looking into the pipeline result.
+
+\subsection{On Failed Build}
+The script then throws an error that the CMake build did fail.
+Usually it then still continues with executing the experiments using the pre-build binaries.
+In case this should not work, please modify the experiment script using the instructions below:\\
+On Windows, please remove lines $8$ and $9$ from the corresponding PowerShell script.\\
+On Linux, please remove lines $9$ and $10$ from the corresponding Bash script.
+
+\subsection{Run Experiments}
+Working Directory must be the corresponding exercise directory!\\
+On Windows, execute the \texttt{experiment\_0\{1,2\}.ps1} scripts in the exercise directory to run the corresponding experiment.\\
+On Linux, execute the \texttt{experiment\_0\{1,2\}.sh} scripts in the exercise directory to run the corresponding experiment.\\
+
+\subsection{Source Code / Project Structure}
+The source to run the experiments can be found in the \texttt{src/} directory of the current exercise directory. 
+Reusable code however is not included in the exercises source directory and can be found in the \texttt{lib/} directory instead. 
+To keep the project clean, we reserve to export reusable code to separate libraries which are then linked in the header of the exercise source files. 
+Please see the README.md file for information about which shared libraries exist and what they contain.
 
 \section{Preliminaries}
 %Theoretical Knowledge applied here
@@ -44,7 +68,52 @@ To facilitate this step, we recommend using Visual Studio Code and the CMake Ext
 %		State the algorithm engineering concepts that you used and explain why they were helpful (if applicable).
 %\end{itemize}
 
+\subsection{Implementation}
+\subsubsection{Parllell Merge Sort}
+The code can be found in \texttt{lib/Sort/mergeSort.cpp} (see included headers).\\
+\\
+Given a variable $T$ indicating the number of threads to use, the algorithm first checks if the available input data can be split into $T$ buckets of at least $2$ elements. 
+If this condition is not met, a classic merge sort will be performed on the data set instead.
+In the next step, the input data is partitioned into $T$ buckets of size $input.size()/T$.  
+These buckets are then individually sorted using classic merge sort. 
+We then apply a similar bottom-up approach to the external memory merge sort and create multiple tasks that each wait for two tasks lower in the tree structure to finish sorting and then performs the merging step on that level. 
+During the bottom-up merging, we have $T/2$ tasks at most thus we never exceed the thread limit.
+\begin{figure}[h]
+    \includegraphics[scale=0.175]{./figures/merge_sort_even.drawio.png}
+    \centering
+    \caption{Parallel merge sort using an even number of $T=4$ buckets}
+    \end{figure}
+In the event of T being odd, the corresponding merging tasks will wait for a single previous task and then merely pass on the result as there is no second block to merge with. 
+Modern computers usually have an even number of cores/threads so we can argue that this case does not occur under normal circumstances.
+\begin{figure}[h]
+\includegraphics[scale=0.175]{./figures/merge_sort_odd.drawio.png}
+\centering
+\caption{Parallel merge sort using an odd number of $T=3$ buckets}
+\end{figure}
 
+\subsection{Parallel Quick Sort}
+The code can be found in \texttt{lib/Sort/quickSort.cpp} (see included headers).\\ 
+\\
+Given a variable $T$ indicating the number of threads to use, the algorithm first checks if the available input data can be split into $T$ buckets of at least $2$ elements. 
+Additionally, a check is performed if the input size is less than a predefined constant of $1000$. 
+In this case, classic merge sort will be performed for performance reasons.\\
+If this is not the case we select the number in the middle (rounded down) of the input data as the pivot element. 
+In the next step, the input data is partitioned into $T$ buckets of size $input.size()/T$. Each bucket then sorts the data into a left and right half. 
+The left half contains only elements smaller than our pivot element and the right side only elements greater than our pivot element. 
+To later split the array into a ``smaller than'' and ``larger than'' half, we count the number of elements on each side. 
+If the array contains the pivot itself, the pivot is placed in between both halves and is not counted.\\
+Once each task has finished splitting, the data is written back into the original array. 
+When writing back, we first move all halves smaller than the pivot in the array, then the pivot itself, and then lastly all halves greater than the pivot. 
+We also have to keep track of the size of the combined ``smaller than'' and ``greater than'' half. 
+In each subsequent step, we then apply the same algorithm to both, the smaller and the greater half. 
+We do this until we reach the predefined constant threshold point for input (bucket) size. 
+From this point on further branching is way too expensive. 
+To reduce runtime costs, the predefined constant should have an even higher value (at least $10000$).
+\begin{figure}[h]
+    \includegraphics[scale=0.175]{./figures/parallel_quick_sort.drawio.png}
+    \centering
+    \caption{Parallel quick sort using $T=3$ buckets}
+    \end{figure}
 
 \section{Experimental Evaluation}
 
