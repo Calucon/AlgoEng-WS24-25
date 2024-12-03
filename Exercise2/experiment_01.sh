@@ -25,6 +25,8 @@ CORES=$(grep ^cpu\\scores /proc/cpuinfo | uniq | awk '{print $4}')
 
 for algo in "${ALGO[@]}"; do
     for i in $(seq 2 $THREADS); do
-        ./bin/ParallelSort $SIZE $algo mta $i >/dev/null
+        for c in $(seq 1 100); do
+            ./bin/ParallelSort $SIZE $algo mta $i >/dev/null
+        done
     done
 done
