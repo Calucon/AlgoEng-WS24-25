@@ -20,9 +20,13 @@
 
 
 \section{Introduction}
+We like to think about things in sequence. One thought alone, that needs our attention. Else, through distractions, we might lose what we were thinking about or maybe completely lose the thought at hand. But we can multitask, although that is depended on the tasks at hand being different from each other in terms of what section of our brain are targeted.\\
+Computers can also multitask, yet instead of having to have thematically different tasks, they can focus all their power on one problem divided, to conquer it faster. That is due to processors and the amount modern computers possess, in contrast to the past, where it was more akin to the first description and needing to use scheduling algorithm, like round-robin scheduling, to simulate parallel work being done on a processor.\\
+But to regain focus, in this report we will focus on the parallel implementation of two algorithms, Merge and Quick Sort, and their normal counterparts and how they compare to each other.
+
 
 \section{Build and Run the project}
-
+%Possibly might do a small rewrite here
 In order to build the project you must meet all requirements from the \texttt{README.md} file in the project root directory.
 The build script will check whether \texttt{gcc} and \texttt{g++} commands are present on your system. 
 Note: it will not check the their version so make sure the required minimum version is installed!\\
@@ -79,14 +83,14 @@ These buckets are then individually sorted using classic merge sort.
 We then apply a similar bottom-up approach to the external memory merge sort and create multiple tasks that each wait for two tasks lower in the tree structure to finish sorting and then performs the merging step on that level. 
 During the bottom-up merging, we have $T/2$ tasks at most thus we never exceed the thread limit.
 \begin{figure}[h]
-    \includegraphics[scale=0.175]{./figures/merge_sort_even.drawio.png}
+    \includegraphics[scale=0.175]{./figures/merge_sort_even.png}
     \centering
     \caption{Parallel merge sort using an even number of $T=4$ buckets}
     \end{figure}
 In the event of T being odd, the corresponding merging tasks will wait for a single previous task and then merely pass on the result as there is no second block to merge with. 
 Modern computers usually have an even number of cores/threads so we can argue that this case does not occur under normal circumstances.
 \begin{figure}[h]
-\includegraphics[scale=0.175]{./figures/merge_sort_odd.drawio.png}
+\includegraphics[scale=0.175]{./figures/merge_sort_odd.png}
 \centering
 \caption{Parallel merge sort using an odd number of $T=3$ buckets}
 \end{figure}
@@ -110,7 +114,7 @@ We do this until we reach the predefined constant threshold point for input (buc
 From this point on further branching is way too expensive. 
 To reduce runtime costs, the predefined constant should have an even higher value (at least $10000$).
 \begin{figure}[h]
-    \includegraphics[scale=0.175]{./figures/parallel_quick_sort.drawio.png}
+    \includegraphics[scale=0.175]{./figures/parallel_quick_sort.png}
     \centering
     \caption{Parallel quick sort using $T=3$ buckets}
     \end{figure}
