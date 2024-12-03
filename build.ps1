@@ -22,5 +22,5 @@ if ([string]::IsNullOrWhitespace($GPP_PATH)) {
 $SC = (Join-Path $PSScriptRoot ".")
 $BC = (Join-Path $PSScriptRoot "build")
 
-cmake -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=$GCC_PATH -DCMAKE_CXX_COMPILER:FILEPATH=$GPP_PATH -S$SC -B$BC -G "MinGW Makefiles"
+cmake -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=$GCC_PATH -DCMAKE_CXX_COMPILER:FILEPATH=$GPP_PATH -S"$SC" -B"$BC" -G "MinGW Makefiles"
 cmake --build build/ --config Release --target all --
