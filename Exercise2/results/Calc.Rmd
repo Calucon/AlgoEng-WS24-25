@@ -1,0 +1,14 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+read_exp1 = read.csv('experiment_01_simon_laptop.csv')
+read_exp2 = read.csv('experiment_02_simon_laptop.csv')
+```
+
+```{r}
+
+```
+
