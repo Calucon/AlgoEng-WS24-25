@@ -95,7 +95,7 @@ Modern computers usually have an even number of cores/threads so we can argue th
 \caption{Parallel merge sort using an odd number of $T=3$ buckets}
 \end{figure}
 
-\subsection{Parallel Quick Sort}
+\subsubsection{Parallel Quick Sort}
 The code can be found in \texttt{lib/Sort/quickSort.cpp} (see included headers).\\ 
 \\
 Given a variable $T$ indicating the number of threads to use, the algorithm first checks if the available input data can be split into $T$ buckets of at least $2$ elements. 
@@ -131,7 +131,7 @@ For running the code, we used the 3.22.1 version of cmake and the 13.1.0 version
 
 \subsection{Results}%
 The results we received from our testing can be viewed in detail in the \texttt{results} directory, namely the files with the suffix \texttt{laptop}.\\
-For the first part of our results, we compared the average total time required to finish the sorting, as can be seen in figure~\ref{fig:exp1_totalTime}. Overall, the parallel Merge Sort performed better on all cores compared to the parallel Quick Sort. The minimum for the average time per core for Merge Sort was found at using 15 cores with a time of 24.64430 seconds and the highest using 2 cores with a time of 85.08657 seconds. In stark contrast, the lowest time for Quick Sort was found at 5 cores with a time of 97.96354 seconds and the highest at 2 cores with a time of 121.23832 seconds. Following this, we decided to core amount that resulted in the lowest total time to be viewed as the best possible value $p$ for the second part of the experiment for the parallel Merge Sort and parallel Quick Sort, being 15 and 5 respectively.\\
+For the first part of our results, we compared the average total time required to finish the sorting, as can be seen in figure~\ref{fig:exp1_totalTime}. Overall, the parallel Merge Sort performed better on all cores compared to the parallel Quick Sort. The minimum for the average time per core for Merge Sort was found at using 15 cores with a time of 24.64430 seconds and the highest using 2 cores with a time of 85.08657 seconds. In stark contrast, the lowest time for Quick Sort was found at 5 cores with a time of 97.96354 seconds and the highest at 2 cores with a time of 121.23832 seconds. Following this, we decided to core amount that resulted in the lowest total time to be viewed as the best possible value $p$ for the second part of the experiment for the parallel Merge Sort and parallel Quick Sort, being 15 and 5 respectively.
 
 \begin{figure}[h]
 	\includegraphics[scale=0.5]{./figures/exp1_comparison_totaltime.png}
@@ -140,10 +140,29 @@ For the first part of our results, we compared the average total time required t
 	\label{fig:exp1_totalTime}
 \end{figure}
 
+For the second part, we focus on the comparison between the type of each algorithm, being single threaded (sta) and multi threaded (mta), as well as the algorithm utilized (Quick Sort, Merge Sort). When comparing them pairwise for each data input size we had, being $10^i$, with $i = 3,...,9$, we were able to see that with a low enough size of i=3, quick sort proved itself faster in both types, as can be seen in figure~\ref{fig:exp2}. But starting with i=4 we can see that the parallel Merge Sort has taken favor in being faster during the sorting. To note, the same applies for the total time, throughout all tests, as it didn't change the comparison from the results we tracked. With i=5 we see an increase in the time required, which will continue drastically with increasing i, but starting here we see a big gap between the time between the parallel Quick Sort and Merge Sort, which stands in opposition to the data collected for their single thread variants. This trend stays consistant through i=9.
 
+\begin{figure}[h]
+	\includegraphics[scale=0.5]{./figures/exp2_comparison_i3_sort.png}
+	\includegraphics[scale=0.5]{./figures/exp2_comparison_i4_sort.png}
+	\includegraphics[scale=0.5]{./figures/exp2_comparison_i5_sort.png}
+	\centering
+	\caption{Comparison of time spent for each sorting algorithm, divided by type for entries i = 3; 4; 5 respectively}
+	\label{fig:exp2}
+\end{figure}
 
 \section{Discussion and Conclusion}
+As presented in the result section, the parallel Merge Sort performed better than the parallel Quick Sort in terms of core usage and time required to complete, as can be seen in figure~\ref{fig:exp1_totalTime}. This observation also translates over to the varying data input sizes, with their most optimal amount of cores $p$ utilized, although this can only be said for inputs of size $10^4$ and above. Below this, the parallel Merge Sort takes more time than the parallel Quick Sort.\\
+The trend observed is in contrast to their normal counterparts, where classical Quick Sort remained faster. Of note is one observation, where for i=9, the classical Merge Sort, which was still slower than the classical Quick Sort, was faster than the parallel Quick Sort, as can be seen in figure~\ref{fig:exp2_i9}. Of further note, beginning from i=5, the parallel Merge Sort also became faster than the classical Quick Sort.
 
+\begin{figure}[h]
+	\includegraphics[scale=0.5]{./figures/exp2_comparison_i9_sort.png}
+	\centering
+	\caption{Comparison of time spent for each sorting algorithm for i=9}
+	\label{fig:exp2_i9}
+\end{figure}
+
+To conclude this report, we presented 
 
 
 \end{document}

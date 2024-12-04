@@ -17,18 +17,23 @@ library(ggplot2)
 ```
 
 ```{r}
-exp1_average = read_exp1 %>%
+exp1_averageTotal = read_exp1 %>%
   group_by(ThreadCount, Algorithm) %>%
   summarise(avgTimeTotal = mean(TimeTotal))
 
-exp1_minimumTime = exp1_average %>%
+exp1_minimumTime = exp1_averageTotal %>%
   slice_min(avgTimeTotal)
   
-
+exp1_averageSort = read_exp1 %>%
+  group_by(ThreadCount, Algorithm) %>%
+  summarise(avgTimeSort = mean(TimeSort))
 
 ```
 ```{r}
-ggplot(exp1_average, aes(x=ThreadCount, y=avgTimeTotal, fill=Algorithm))+
+ggplot(exp1_averageTotal, aes(x=ThreadCount, y=avgTimeTotal, fill=Algorithm))+
+  geom_bar(stat='identity', position='dodge')
+
+ggplot(exp1_averageSort, aes(x=ThreadCount, y=avgTimeSort, fill=Algorithm))+
   geom_bar(stat='identity', position='dodge')
 ```
 
@@ -40,6 +45,57 @@ exp2 = read_exp2 %>%
     !(Type %in% c("mta"))
   )
 ```
+
+
+```{r}
+exp2_i3 = exp2 %>% filter(InputSize == 1e+3)
+exp2_i4 = exp2 %>% filter(InputSize == 1e+4)
+exp2_i5 = exp2 %>% filter(InputSize == 1e+5)
+exp2_i6 = exp2 %>% filter(InputSize == 1e+6)
+exp2_i7 = exp2 %>% filter(InputSize == 1e+7)
+exp2_i8 = exp2 %>% filter(InputSize == 1e+8)
+exp2_i9 = exp2 %>% filter(InputSize == 1e+9)
+
+
+```
+
+```{r}
+pi3 <- ggplot(exp2_i3, aes(x=Type, y=TimeSort, fill = Algorithm))+
+  geom_bar(stat='identity', position='dodge')
+pi3
+```
+```{r}
+pi4 <- ggplot(exp2_i4, aes(x=Type, y=TimeSort, fill = Algorithm))+
+  geom_bar(stat='identity', position='dodge')
+pi4
+```
+```{r}
+pi5 <- ggplot(exp2_i5, aes(x=Type, y=TimeSort, fill = Algorithm))+
+  geom_bar(stat='identity', position='dodge')
+pi5
+```
+```{r}
+pi6 <- ggplot(exp2_i6, aes(x=Type, y=TimeSort, fill = Algorithm))+
+  geom_bar(stat='identity', position='dodge')
+pi6
+```
+```{r}
+pi7 <- ggplot(exp2_i7, aes(x=Type, y=TimeSort, fill = Algorithm))+
+  geom_bar(stat='identity', position='dodge')
+pi7
+```
+```{r}
+pi8 <- ggplot(exp2_i8, aes(x=Type, y=TimeSort, fill = Algorithm))+
+  geom_bar(stat='identity', position='dodge')
+pi8
+```
+```{r}
+pi9 <- ggplot(exp2_i9, aes(x=Type, y=TimeSort, fill = Algorithm))+
+  geom_bar(stat='identity', position='dodge')
+pi9
+```
+
+
 
 
 ```{r}
@@ -95,21 +151,21 @@ p + coord_flip()
 ```
 
 ```{r}
-exp2_below_e9 = exp2%>%
+exp2_below_e5 = exp2%>%
   filter(
-    (InputSize < 1e+9)
+    (InputSize < 1e+5)
   )
   
 
-exp2_e9 = exp2 %>%
+exp2_e6 = exp2 %>%
   filter(
-    (InputSize == 1e+9)
+    (InputSize >= 1e+5)
   )
 
 ```
 
 ```{r}
-p <- ggplot(exp2_below_e9, aes(x=InputSize, y=TimeTotal, fill = Algorithm))+
+p <- ggplot(exp2_below_e5, aes(x=InputSize, y=TimeSort, fill = Algorithm))+
   geom_bar(stat='identity', position='dodge')
 p
 ```
