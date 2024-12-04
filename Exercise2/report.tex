@@ -15,7 +15,7 @@
 \input{ae_title}
 
 \begin{abstract}
-    Abstract is very abstract
+    It's quicker to finish work, when everyone does their part. This concept also translates into algorithms, where we can subdivide tasks and give them to an amount of processor to handle them respectively and simultaneously in parallel. According to this, we implemented parallel Merge Sort and parallel Quick Sort. We found, that on larger data, the parallel Merge Sort performed better than the parallel Quick Sort, but on smaller data, this is inverse.
 \end{abstract}
 
 
@@ -59,7 +59,9 @@ Please see the README.md file for information about which shared libraries exist
 %Theoretical Knowledge applied here
 %The algorithm we are wanting to focus on is External Memory MergeSort, or short EM-MergeSort.
 %For the task of sorting data entries we are focusing on MergeSort. It functions by firstly dividing all entries into singular entries, then merging them together into parts and sorting them during that process. With this, we can work on smaller arrays of objects.
-
+This report focuses on the concept of parallel processing and the implementation of parallel Merge Sort and parallel Quick Sort. Both of these rely on utilizing an amount of processor cores $p$ to let the task be subdivided among them.
+For Merge Sort, this is done by first partitioning the entries recursively and once that is done, to merge the sequences and have the merging task itself be done in parallel to one another.
+Quick Sort goes a similar path, where the first step is to select a random pivot element $q$ and then rearrange the entries in parallel, which is then recursively repeated on each side.
 
 \section{Algorithm \& Implementation}
 %This section provides information about the actually used algorithms and their respective implementations. It should roughly cover the following three topics:
@@ -71,9 +73,9 @@ Please see the README.md file for information about which shared libraries exist
 %	\item \textbf{Algorithm Engineering Concepts:}\\
 %		State the algorithm engineering concepts that you used and explain why they were helpful (if applicable).
 %\end{itemize}
-
+In this section we will go over the implementation of the parallel algorithms, which are also described in their respective sections. Their classical counterparts, which we utilized, won't be explained in detail, due to them not diverging from their normal implementation and just being used for testing.
 \subsection{Implementation}
-\subsubsection{Parllell Merge Sort}
+\subsubsection{Parallell Merge Sort}
 The code can be found in \texttt{lib/Sort/mergeSort.cpp} (see included headers).\\
 \\
 Given a variable $T$ indicating the number of threads to use, the algorithm first checks if the available input data can be split into $T$ buckets of at least $2$ elements. 
@@ -162,7 +164,7 @@ The trend observed is in contrast to their normal counterparts, where classical 
 	\label{fig:exp2_i9}
 \end{figure}
 
-To conclude this report, we presented 
+To conclude this report, we presented two parallel implementations of Merge Sort and Quick Sort, tested alongside their classical counterparts and can report that with a higher file size to be processed, the parallel Merge Sort performs well, in contrast to the implementation of the parallel Quick Sort, as well as the classical implementations.
 
 
 \end{document}
