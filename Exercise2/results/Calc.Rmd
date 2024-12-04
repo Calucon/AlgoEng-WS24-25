@@ -73,5 +73,43 @@ p + coord_flip()
 ```
 
 
+```{r}
+p <- ggplot(exp2_merge_mta, aes(x=InputSize, y=TimeTotal))+
+  geom_bar(stat="identity", color="blue", fill="white")
 
+p + coord_flip()
+```
 
+```{r}
+p <- ggplot(exp2_quicke_sta, aes(x=InputSize, y=TimeTotal))+
+  geom_bar(stat="identity", color="blue", fill="white")
+
+p + coord_flip()
+```
+
+```{r}
+p <- ggplot(exp2_quick_mta, aes(x=InputSize, y=TimeTotal))+
+  geom_bar(stat="identity", color="blue", fill="white")
+
+p + coord_flip()
+```
+
+```{r}
+exp2_below_e9 = exp2%>%
+  filter(
+    (InputSize < 1e+9)
+  )
+  
+
+exp2_e9 = exp2 %>%
+  filter(
+    (InputSize == 1e+9)
+  )
+
+```
+
+```{r}
+p <- ggplot(exp2_below_e9, aes(x=InputSize, y=TimeTotal, fill = Algorithm))+
+  geom_bar(stat='identity', position='dodge')
+p
+```
