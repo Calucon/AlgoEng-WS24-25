@@ -3,12 +3,75 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+
 ```{r}
 read_exp1 = read.csv('experiment_01_simon_laptop.csv')
 read_exp2 = read.csv('experiment_02_simon_laptop.csv')
 ```
 
 ```{r}
+library(datasets) #Load the datasets package
+#attach(iris) #Attach iris data to the R search path
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+exp1_average = read_exp1 %>%
+  group_by(ThreadCount, Algorithm) %>%
+  summarise(avgTimeTotal = mean(TimeTotal))
+
+exp1_minimumTime = exp1_average %>%
+  slice_min(avgTimeTotal)
+  
+
 
 ```
+```{r}
+ggplot(exp1_average, aes(x=ThreadCount, y=avgTimeTotal, fill=Algorithm))+
+  geom_bar(stat='identity', position='dodge')
+```
+
+```{r}
+exp2 = read_exp2 %>%
+  filter(
+    (Algorithm == "merge" & ThreadCount == 15) |
+    (Algorithm == "quick" & ThreadCount == 5) |
+    !(Type %in% c("mta"))
+  )
+```
+
+
+```{r}
+exp2_merge_sta = exp2 %>%
+  filter(
+    (Algorithm == "merge" & Type == "sta")
+  )
+
+exp2_merge_mta = exp2 %>%
+  filter(
+    (Algorithm == "merge" & Type == "mta")
+  )
+
+exp2_quicke_sta = exp2 %>%
+  filter(
+    (Algorithm == "quick" & Type == "sta")
+  )
+
+exp2_quick_mta = exp2 %>%
+  filter(
+    (Algorithm == "quick" & Type == "mta")
+  )
+
+```
+
+```{r}
+p <- ggplot(exp2_merge_sta, aes(x=InputSize, y=TimeTotal))+
+  geom_bar(stat="identity", color="blue", fill="white")
+
+p + coord_flip()
+```
+
+
+
 
